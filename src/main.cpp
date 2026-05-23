@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <glad/glad.h> 
-#include <GLFW/glfw3.h> 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -10,6 +8,7 @@
 
 #include "ps3eye.h"
 #include "TrackerDetection.h"
+#include "Window.h"
 
 #define WIDTH 640
 #define HEIGHT 480
@@ -62,55 +61,17 @@ int main() {
     cv::Mat frame1 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
     cv::Mat frame2 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
 
-    // init glfw and opengl
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        cam1->stop();
-        cam2->stop();
-        return 1;
+    Window main;
+
+    if (main.init()){
+        return 0;
     }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // create glfw window
-    GLFWwindow* window = glfwCreateWindow(1340, 580, "Indoor Tracking Drones - Camera Feed Setup", nullptr, nullptr);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        cam1->stop();
-        cam2->stop();
-        return 1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // vsync
-
-    // init glad
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD pointer loader!" << std::endl;
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        cam1->stop();
-        cam2->stop();
-        return 1;
-    }
-
-    // imgui init
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
 
     GLuint camTex1, camTex2;
     glGenTextures(1, &camTex1);
     glGenTextures(1, &camTex2);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!main.shouldWindowClose()) {
         glfwPollEvents();
 
         cam1->getFrame(frame1.data);
@@ -148,25 +109,18 @@ int main() {
 
         ImGui::Render();
         int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glfwGetFramebufferSize(main.getWindow(), &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(0.15f, 0.16f, 0.18f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(main.getWindow());
     }
 
     // clean
     glDeleteTextures(1, &camTex1);
     glDeleteTextures(1, &camTex2);
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 
     cam1->stop();
     cam2->stop();
