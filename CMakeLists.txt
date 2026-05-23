@@ -22,9 +22,13 @@ set(BUILD_opencv_video OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_videoio OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_imgcodecs OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_highgui OFF CACHE BOOL "" FORCE)
+set(WITH_IPP OFF CACHE BOOL "" FORCE)
+set(BUILD_opencv_java OFF CACHE BOOL "" FORCE)
 
 set(BUILD_opencv_core ON CACHE BOOL "" FORCE)
 set(BUILD_opencv_imgproc ON CACHE BOOL "" FORCE)
+
+set(GLM_BUILD_LIBRARY OFF CACHE BOOL "" FORCE)
 
 # subdirs
 add_subdirectory(deps/opencv)
@@ -83,7 +87,7 @@ target_link_libraries(IndoorTrackingDrones
     opencv_imgproc
     libusb::usb-1.0
     glfw
-    glm::glm
+    glm
 )
 
 # move dll's

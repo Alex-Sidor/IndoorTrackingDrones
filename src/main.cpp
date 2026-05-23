@@ -15,7 +15,7 @@
 
 #define WIDTH 640
 #define HEIGHT 480
-#define FPS 75
+#define FPS 60
 
 void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame) {
     cv::Mat rgbFrame;
@@ -70,7 +70,7 @@ int main() {
         return 0;
     }
 
-    Mocap cap;
+    Mocap cap(2);
 
     GLuint camTex1, camTex2;
     glGenTextures(1, &camTex1);
@@ -81,6 +81,14 @@ int main() {
 
         cam1->getFrame(frame1.data);
         cam2->getFrame(frame2.data);
+
+        glm::vec2 p1 = TrackerDetection::findAndDrawBrightestPixel(frame1);
+        glm::vec2 p2 = TrackerDetection::findAndDrawBrightestPixel(frame2);
+
+
+
+        TrackerDetection::placeTrackerMarker(frame1, p1);
+        TrackerDetection::placeTrackerMarker(frame2, p2);
 
         updateOpenGLTexture(camTex1, frame1);
         updateOpenGLTexture(camTex2, frame2);
@@ -96,13 +104,21 @@ int main() {
                 cap.startPointRecording(50);
             }
         }
-
-        if (cap.isRecordingPoints()) {
-            cap.recordPoint();
+        
+        bool allVisible = true;
+        std::vector<glm::vec2> vec = { p1, p2 };
+        for (int i = 0; i < vec.size(); i++) {
+            if (vec[i].x < 0.0f) {
+                allVisible = false;
+                break;
+            }
         }
 
-        glm::vec2 p0 = TrackerDetection::findAndDrawBrightestPixel(frame1);
-        glm::vec2 p1 = TrackerDetection::findAndDrawBrightestPixel(frame2);
+        if (cap.isRecordingPoints() && allVisible) {
+            cap.recordPoint(vec);
+        }
+
+
 
         ImGui::BeginGroup();
         ImGui::Text("cam 1");

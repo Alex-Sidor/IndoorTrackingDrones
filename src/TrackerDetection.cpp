@@ -20,13 +20,13 @@ glm::vec2 TrackerDetection::findAndDrawBrightestPixel(cv::Mat& frame) {
     }
 }
 
-void placeTrackerMarker(cv::Mat& frame, cv::Point maxLoc) {
+void TrackerDetection::placeTrackerMarker(cv::Mat& frame, glm::vec2 p) {
 
     int boxSize = 21;
     int halfSize = boxSize / 2;
 
-    cv::Point topLeft(maxLoc.x - halfSize, maxLoc.y - halfSize);
-    cv::Point bottomRight(maxLoc.x + halfSize, maxLoc.y + halfSize);
+    cv::Point topLeft(p.x - halfSize, p.y - halfSize);
+    cv::Point bottomRight(p.x + halfSize, p.y + halfSize);
 
     topLeft.x = std::max(0, topLeft.x);
     topLeft.y = std::max(0, topLeft.y);
