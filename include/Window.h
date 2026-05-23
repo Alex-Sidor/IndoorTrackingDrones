@@ -11,9 +11,9 @@
 
 class Window {
 public:
-	Window::~Window();
+	~Window();
 	
-	int Window::init();
+	int init();
 
 	GLFWwindow* getWindow();
 

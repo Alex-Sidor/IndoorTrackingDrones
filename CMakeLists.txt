@@ -29,6 +29,7 @@ set(BUILD_opencv_imgproc ON CACHE BOOL "" FORCE)
 # subdirs
 add_subdirectory(deps/opencv)
 add_subdirectory(deps/glfw)
+add_subdirectory(deps/glm)
 
 # libusb
 if(NOT TARGET libusb::usb-1.0)
@@ -82,6 +83,7 @@ target_link_libraries(IndoorTrackingDrones
     opencv_imgproc
     libusb::usb-1.0
     glfw
+    glm::glm
 )
 
 # move dll's

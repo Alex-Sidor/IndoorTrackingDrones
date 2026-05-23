@@ -2,8 +2,7 @@
 
 #include <algorithm>
 
-
-cv::Point TrackerDetection::findAndDrawBrightestPixel(cv::Mat& frame) {
+glm::vec2 TrackerDetection::findAndDrawBrightestPixel(cv::Mat& frame) {
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
@@ -11,11 +10,13 @@ cv::Point TrackerDetection::findAndDrawBrightestPixel(cv::Mat& frame) {
     cv::Point maxLoc;
     cv::minMaxLoc(gray, nullptr, &maxVal, nullptr, &maxLoc);
 
+    glm::vec2 p = glm::vec2(maxLoc.x, maxLoc.y);
+
     if (maxVal > 240) {
-        return maxLoc;
+        return p;
     }
     else {
-        return cv::Point(-1, -1);
+        return glm::vec2(-1.0f);
     }
 }
 

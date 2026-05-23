@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "glm/glm.hpp"
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -9,6 +11,7 @@
 #include "ps3eye.h"
 #include "TrackerDetection.h"
 #include "Window.h"
+#include "MocapManager.h"
 
 #define WIDTH 640
 #define HEIGHT 480
@@ -67,6 +70,8 @@ int main() {
         return 0;
     }
 
+    Mocap cap;
+
     GLuint camTex1, camTex2;
     glGenTextures(1, &camTex1);
     glGenTextures(1, &camTex2);
@@ -76,9 +81,6 @@ int main() {
 
         cam1->getFrame(frame1.data);
         cam2->getFrame(frame2.data);
-
-        TrackerDetection::findAndDrawBrightestPixel(frame1);// turn this into gpu in the future
-        TrackerDetection::findAndDrawBrightestPixel(frame2);
 
         updateOpenGLTexture(camTex1, frame1);
         updateOpenGLTexture(camTex2, frame2);
@@ -90,8 +92,17 @@ int main() {
         ImGui::Begin("Cameras");
 
         if (ImGui::Button("Calibrate Cameras")) {
-
+            if (!cap.isRecordingPoints()) {
+                cap.startPointRecording(50);
+            }
         }
+
+        if (cap.isRecordingPoints()) {
+            cap.recordPoint();
+        }
+
+        glm::vec2 p0 = TrackerDetection::findAndDrawBrightestPixel(frame1);
+        glm::vec2 p1 = TrackerDetection::findAndDrawBrightestPixel(frame2);
 
         ImGui::BeginGroup();
         ImGui::Text("cam 1");
