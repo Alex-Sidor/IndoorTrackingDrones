@@ -1,22 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(ps3eye C CXX)
+project(IndoorTrackingDrones C CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# opencv
-set(WITH_IPP OFF CACHE BOOL "Disable IPP" FORCE)
-set(BUILD_IPP_IW OFF CACHE BOOL "Disable IPP IW" FORCE)
-set(VIDEOIO_ENABLE_PLUGINS OFF CACHE BOOL "Disable videoio plugins" FORCE)
-
-# Explicitly disable Java to prevent space-in-path compilation crashes
-set(BUILD_opencv_java OFF CACHE BOOL "Disable Java bindings" FORCE)
-set(BUILD_JAVA OFF CACHE BOOL "Disable Java" FORCE)
-
-# Enable the core modules that are needed
-set(BUILD_opencv_imgcodecs ON CACHE BOOL "Required by highgui" FORCE)
-
-# Only build the minimal modules we need to save time
+# opencv modules
 set(BUILD_opencv_apps OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_calib3d OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_dnn OFF CACHE BOOL "" FORCE)
@@ -29,10 +19,16 @@ set(BUILD_opencv_photo OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_stitching OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_ts OFF CACHE BOOL "" FORCE)
 set(BUILD_opencv_video OFF CACHE BOOL "" FORCE)
+set(BUILD_opencv_videoio OFF CACHE BOOL "" FORCE)
+set(BUILD_opencv_imgcodecs OFF CACHE BOOL "" FORCE)
+set(BUILD_opencv_highgui OFF CACHE BOOL "" FORCE)
 
-# Now safely add the subdirectory
-add_subdirectory(opencv)
-add_subdirectory(imgui) 
+set(BUILD_opencv_core ON CACHE BOOL "" FORCE)
+set(BUILD_opencv_imgproc ON CACHE BOOL "" FORCE)
+
+# subdirs
+add_subdirectory(deps/opencv)
+add_subdirectory(deps/glfw)
 
 # libusb
 if(NOT TARGET libusb::usb-1.0)
@@ -45,48 +41,66 @@ if(NOT TARGET libusb::usb-1.0)
 endif()
 
 # target
-add_executable(ps3eye 
-    src/main.cpp 
-    src/ps3eye.cpp
+
+file(GLOB SRC_FILES "src/*.cpp")
+
+add_executable(IndoorTrackingDrones
+    ${SRC_FILES}
+    
+    deps/glad/src/glad.c
+    
+    deps/imgui/imgui.cpp
+    deps/imgui/imgui_draw.cpp
+    deps/imgui/imgui_tables.cpp
+    deps/imgui/imgui_widgets.cpp
+    
+    deps/imgui/backends/imgui_impl_glfw.cpp
+    deps/imgui/backends/imgui_impl_opengl3.cpp
+    )
+
+target_include_directories(IndoorTrackingDrones PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+target_include_directories(IndoorTrackingDrones PRIVATE 
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui"
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui/backends"
 )
 
-target_include_directories(ps3eye PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(IndoorTrackingDrones PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include")
 
-target_include_directories(ps3eye PRIVATE 
-    "${CMAKE_CURRENT_BINARY_DIR}"                        
-    "${CMAKE_CURRENT_BINARY_DIR}/opencv"                        
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/modules/core/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/modules/imgproc/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/modules/imgcodecs/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/modules/highgui/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opencv/modules/videoio/include"
+target_include_directories(IndoorTrackingDrones PRIVATE 
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/opencv/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/opencv/modules/core/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/opencv/modules/imgproc/include"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/deps/opencv"
 )
 
 # Link the targets
-target_link_libraries(ps3eye 
+target_link_libraries(IndoorTrackingDrones 
     PRIVATE
     opencv_core
     opencv_imgproc
-    opencv_imgcodecs
-    opencv_highgui
-    opencv_videoio
     libusb::usb-1.0
+    glfw
 )
 
-# move dll's and related
-set(LIBUSB_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+# move dll's
+set(LUBUSB_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-add_custom_command(TARGET ps3eye POST_BUILD
+add_custom_command(TARGET IndoorTrackingDrones POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${LIBUSB_BIN_DIR}/libusb-1.0.dll"
-        "$<TARGET_FILE_DIR:ps3eye>/"
-    COMMENT "Copying libusb-1.0.dll to VS output directory..."
+        "${LUBUSB_BIN_DIR}/libusb-1.0.dll"
+        "$<TARGET_FILE_DIR:IndoorTrackingDrones>/"
 )
 
-add_custom_command(TARGET ps3eye POST_BUILD
+add_custom_command(TARGET IndoorTrackingDrones POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${LIBUSB_BIN_DIR}/libusb-1.0.pdb"
-        "$<TARGET_FILE_DIR:ps3eye>/"
-    COMMENT "Copying libusb-1.0.pdb to VS output directory..."
+        "${LUBUSB_BIN_DIR}/libusb-1.0.pdb"
+        "$<TARGET_FILE_DIR:IndoorTrackingDrones>/"
+)
+
+add_custom_command(TARGET IndoorTrackingDrones POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:glfw>"
+        "$<TARGET_FILE_DIR:IndoorTrackingDrones>/"
 )

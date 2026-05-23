@@ -1,47 +1,37 @@
 #include <iostream>
-#include "ps3eye.h"
+
+#include <glad/glad.h> 
+#include <GLFW/glfw3.h> 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
+
+#include "ps3eye.h"
+#include "TrackerDetection.h"
 
 #define WIDTH 640
 #define HEIGHT 480
 #define FPS 75
 
-void findAndDrawBrightestPixel(cv::Mat& frame) {
-    cv::Mat gray;
+void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame) {
+    cv::Mat rgbFrame;
+    cv::cvtColor(frame, rgbFrame, cv::COLOR_BGR2RGB);
 
-    // 1. Convert the frame to grayscale to judge brightness
-    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
-    // 2. Find the location of the absolute brightest pixel
-    double maxVal;
-    cv::Point maxLoc;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // minMaxLoc finds the min value, max value, and their respective coordinates
-    cv::minMaxLoc(gray, nullptr, &maxVal, nullptr, &maxLoc);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rgbFrame.cols, rgbFrame.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, rgbFrame.data);
 
-    // Optional: Filter out low-light noise. 
-    // If the "brightest" pixel isn't actually bright (e.g., in a pitch-black room), ignore it.
-    if (maxVal > 240) {
-        int boxSize = 21;
-        int halfSize = boxSize / 2; // 10 pixels on each side of the center
-
-        // 3. Define the top-left and bottom-right corners of the 21x21 box
-        cv::Point topLeft(maxLoc.x - halfSize, maxLoc.y - halfSize);
-        cv::Point bottomRight(maxLoc.x + halfSize, maxLoc.y + halfSize);
-
-        // 4. Bound the coordinates so they don't draw outside the screen edges (prevents crashes)
-        topLeft.x = std::max(0, topLeft.x);
-        topLeft.y = std::max(0, topLeft.y);
-        bottomRight.x = std::min(frame.cols - 1, bottomRight.x);
-        bottomRight.y = std::min(frame.rows - 1, bottomRight.y);
-
-        // 5. Draw the solid red block (BGR: 0, 0, 255)
-        // Thickness = -1 fills the rectangle completely
-        cv::rectangle(frame, topLeft, bottomRight, cv::Scalar(0, 0, 255), -1);
-    }
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
 int main() {
+    // init cameras
     const auto& devices = ps3eye::PS3EYECam::getDevices(true);
 
     if (devices.size() < 2) {
@@ -72,24 +62,111 @@ int main() {
     cv::Mat frame1 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
     cv::Mat frame2 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
 
-    volatile bool running = true;
+    // init glfw and opengl
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        cam1->stop();
+        cam2->stop();
+        return 1;
+    }
 
-    while (running) {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // create glfw window
+    GLFWwindow* window = glfwCreateWindow(1340, 580, "Indoor Tracking Drones - Camera Feed Setup", nullptr, nullptr);
+    if (!window) {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        cam1->stop();
+        cam2->stop();
+        return 1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // vsync
+
+    // init glad
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD pointer loader!" << std::endl;
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        cam1->stop();
+        cam2->stop();
+        return 1;
+    }
+
+    // imgui init
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    GLuint camTex1, camTex2;
+    glGenTextures(1, &camTex1);
+    glGenTextures(1, &camTex2);
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+
         cam1->getFrame(frame1.data);
         cam2->getFrame(frame2.data);
 
-        // Process frames for both cameras to locate the top hotspot
-        findAndDrawBrightestPixel(frame1);
-        findAndDrawBrightestPixel(frame2);
+        TrackerDetection::findAndDrawBrightestPixel(frame1);// turn this into gpu in the future
+        TrackerDetection::findAndDrawBrightestPixel(frame2);
 
-        cv::imshow("Camera 1 (Left)", frame1);
-        cv::imshow("Camera 2 (Right)", frame2);
+        updateOpenGLTexture(camTex1, frame1);
+        updateOpenGLTexture(camTex2, frame2);
 
-        auto key = cv::waitKey(1);
-        if (key == 27) { // ESC key to exit
-            running = false;
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Cameras");
+
+        if (ImGui::Button("Calibrate Cameras")) {
+
         }
+
+        ImGui::BeginGroup();
+        ImGui::Text("cam 1");
+        ImGui::Image((ImTextureID)(intptr_t)camTex1, ImVec2(WIDTH, HEIGHT));
+        ImGui::EndGroup();
+
+        ImGui::SameLine();
+
+        ImGui::BeginGroup();
+        ImGui::Text("cam 2");
+        ImGui::Image((ImTextureID)(intptr_t)camTex2, ImVec2(WIDTH, HEIGHT));
+        ImGui::EndGroup();
+
+        ImGui::End();
+
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(0.15f, 0.16f, 0.18f, 1.00f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        glfwSwapBuffers(window);
     }
+
+    // clean
+    glDeleteTextures(1, &camTex1);
+    glDeleteTextures(1, &camTex2);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     cam1->stop();
     cam2->stop();
