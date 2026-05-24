@@ -12,6 +12,7 @@
 #include "TrackerDetection.h"
 #include "Window.h"
 #include "MocapManager.h"
+#include "CameraSystem.h"
 
 #define WIDTH 640
 #define HEIGHT 480
@@ -31,35 +32,8 @@ void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
 int main() {
-    // init cameras
-    const auto& devices = ps3eye::PS3EYECam::getDevices(true);
-
-    if (devices.size() < 2) {
-        std::cerr << "Error: Found " << devices.size() << " PS3 Eye device(s). You need at least 2 connected!" << std::endl;
-        return 1;
-    }
-
-    std::cout << "Found " << devices.size() << " devices. Initializing the first two..." << std::endl;
-
-    const auto cam1 = devices[0];
-    const auto cam2 = devices[1];
-
-    if (!cam1->init(WIDTH, HEIGHT, FPS)) {
-        std::cerr << "Could not initialize PS3 Eye Camera 1" << std::endl;
-        return 1;
-    }
-    cam1->start();
-    cam1->setAutogain(false);
-
-    if (!cam2->init(WIDTH, HEIGHT, FPS)) {
-        std::cerr << "Could not initialize PS3 Eye Camera 2" << std::endl;
-        cam1->stop();
-        return 1;
-    }
-    cam2->start();
-    cam2->setAutogain(false);
+   
 
     cv::Mat frame1 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
     cv::Mat frame2 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
@@ -72,6 +46,14 @@ int main() {
 
     Mocap cap(2);
 
+    CameraSystem sys;
+    sys.init();
+
+    if (sys.getNumberOfCameras() < 2) {
+        std::cout << "Not enough cameras connected need " << (2 - sys.getNumberOfCameras()) << " more\n";
+        return 0;
+    }
+
     GLuint camTex1, camTex2;
     glGenTextures(1, &camTex1);
     glGenTextures(1, &camTex2);
@@ -79,16 +61,27 @@ int main() {
     while (!main.shouldWindowClose()) {
         glfwPollEvents();
 
-        cam1->getFrame(frame1.data);
-        cam2->getFrame(frame2.data);
+        cv::Mat* frames = sys.getCameraFrames();
 
-        glm::vec2 p1 = TrackerDetection::findAndDrawBrightestPixel(frame1);
-        glm::vec2 p2 = TrackerDetection::findAndDrawBrightestPixel(frame2);
+        if (frames) {
+            bool allTracked = true;
 
+            std::vector<glm::vec2> trackedPositions;
 
+            for (int i = 0; i < sys.getNumberOfCameras(); i++) {
+                glm::vec2 out = TrackerDetection::findTracker(frames[i]);
 
-        TrackerDetection::placeTrackerMarker(frame1, p1);
-        TrackerDetection::placeTrackerMarker(frame2, p2);
+                if (out.x == NAN) {
+                    allTracked = false;
+                    break;
+                }
+
+                TrackerDetection::placeTrackerMarker(frames[i], out);
+
+                trackedPositions.push_back(out);
+            }
+        }
+
 
         updateOpenGLTexture(camTex1, frame1);
         updateOpenGLTexture(camTex2, frame2);
@@ -148,9 +141,6 @@ int main() {
     // clean
     glDeleteTextures(1, &camTex1);
     glDeleteTextures(1, &camTex2);
-
-    cam1->stop();
-    cam2->stop();
 
     return 0;
 }
