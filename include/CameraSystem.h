@@ -19,6 +19,8 @@
 
 class CameraSystem {
 public:
+	CameraSystem();
+
 	~CameraSystem();
 
 	int getNumberOfCameras();
