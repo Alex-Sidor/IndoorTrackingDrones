@@ -2,20 +2,18 @@
 
 #include <vector>
 #include <string>
-
 #include <iostream>
 
-#include <opencv2/opencv.hpp>
-
 #include <chrono>
+#include <thread>
+#include <atomic>
 
+#include <opencv2/opencv.hpp>
 #include "ps3eye.h"
 
 #define WIDTH 640
 #define HEIGHT 480
 #define FPS 60
-
-#define PERIOD (1.0 / FPS)
 
 class CameraSystem {
 public:
@@ -28,6 +26,13 @@ public:
 	cv::Mat* getCameraFrames();
 
 private:
+	bool cameraThreadShouldRun = false;
+	void cameraReadThread();
+	std::chrono::duration<double> period;
+
+
+	std::thread cameraWorker;
+	
 	std::vector<ps3eye::PS3EYECam::PS3EYERef> devices;
 
 	std::chrono::steady_clock::time_point lastFrameRead;

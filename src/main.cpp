@@ -33,10 +33,6 @@ void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame) {
 }
 
 int main() {
-   
-
-    cv::Mat frame1 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
-    cv::Mat frame2 = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
 
     Window main;
 
@@ -69,19 +65,18 @@ int main() {
             std::vector<glm::vec2> trackedPositions;
 
             for (int i = 0; i < sys.getNumberOfCameras(); i++) {
-                glm::vec2 out = TrackerDetection::findTracker(frames[i]);
+                glm::vec2 out = TrackerDetection::findTracker(&frames[i]);
 
                 if (out.x == NAN) {
                     allTracked = false;
                     break;
                 }
 
-                TrackerDetection::placeTrackerMarker(frames[i], out);
+                TrackerDetection::placeTrackerMarker(&frames[i], out);
 
                 trackedPositions.push_back(out);
             }
         }
-
 
         updateOpenGLTexture(camTex1, frame1);
         updateOpenGLTexture(camTex2, frame2);
@@ -114,14 +109,9 @@ int main() {
 
 
         ImGui::BeginGroup();
-        ImGui::Text("cam 1");
+        ImGui::Text("1");
         ImGui::Image((ImTextureID)(intptr_t)camTex1, ImVec2(WIDTH, HEIGHT));
-        ImGui::EndGroup();
-
-        ImGui::SameLine();
-
-        ImGui::BeginGroup();
-        ImGui::Text("cam 2");
+        ImGui::Text("2");
         ImGui::Image((ImTextureID)(intptr_t)camTex2, ImVec2(WIDTH, HEIGHT));
         ImGui::EndGroup();
 

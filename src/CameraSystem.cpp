@@ -4,7 +4,39 @@ using namespace std::chrono;
 using namespace std;
 using namespace ps3eye;
 
+void CameraSystem::cameraReadThread() {
+	
+	while (cameraThreadShouldRun) {
+		auto currentTime = high_resolution_clock::now();
+
+		std::chrono::duration<double> timeTaken = currentTime - lastFrameRead;
+
+		lastFrameRead = currentTime;
+
+		if (timeTaken < period) {
+			std::this_thread::sleep_for(period - timeTaken);
+		}
+		else {
+			std::cout << "Camera Read Thread Cannot Keep Up\n";
+		}
+
+		if (cameraFrames) {
+			for (int i = 0; i < devices.size(); i++) {
+				if (devices[i]->isInitialized()) {
+
+					devices[i]->getFrame(cameraFrames[i].data);
+				}
+			}
+		}
+		else {
+			std::cout << "Camera Frames not initialised\n";
+		}
+	}
+}
+
 int CameraSystem::init() {
+	period = std::chrono::duration<double>(1.0 / FPS);
+	
 	devices = PS3EYECam::getDevices(true);
 	numberOfCams = devices.size();
 	cameraFrames = new cv::Mat[numberOfCams];
@@ -26,9 +58,15 @@ int CameraSystem::init() {
 	}
 
 	lastFrameRead = high_resolution_clock::now();
+
+	cameraThreadShouldRun = true;
+	std::thread cameraWorker(cameraReadThread);
 }
 
 CameraSystem::~CameraSystem() {
+	cameraThreadShouldRun = false; // make the camera thread do its last run
+	cameraWorker.join(); // sync and close it with this thread
+	
 	for (int i = 0; i < numberOfCams; i++) {
 		if (devices[i]->isInitialized()) {
 			devices[i]->stop();
@@ -45,25 +83,5 @@ int CameraSystem::getNumberOfCameras() {
 }
 
 cv::Mat* CameraSystem::getCameraFrames() {
-	auto currentTime = high_resolution_clock::now();
-	auto diff = duration_cast<microseconds>(currentTime - lastFrameRead);
-
-	if (diff.count() < PERIOD) {
-		std::cout << "Reading Frames early\n";
-	}
-	else {
-		if (cameraFrames) {
-			for (int i = 0; i < devices.size(); i++) {
-				if (devices[i]->isInitialized()) {
-
-					devices[i]->getFrame(cameraFrames[i].data);
-				}
-			}
-		}
-		else {
-			std::cout << "Camera Frames not initialised\n";
-		}
-	}
-	
 	return cameraFrames;
 }
