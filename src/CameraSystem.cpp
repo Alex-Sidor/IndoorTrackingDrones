@@ -5,20 +5,13 @@ using namespace std;
 using namespace ps3eye;
 
 void CameraSystem::cameraReadThread() {
-	
+
+	auto nextFrameTime = high_resolution_clock::now();
+
+	period = std::chrono::duration<double>(1.0 / FPS);
+
 	while (cameraThreadShouldRun) {
-		auto currentTime = high_resolution_clock::now();
-
-		std::chrono::duration<double> timeTaken = currentTime - lastFrameRead;
-
-		lastFrameRead = currentTime;
-
-		if (timeTaken < period) {
-			std::this_thread::sleep_for(period - timeTaken);
-		}
-		else {
-			std::cout << "Camera Read Thread Cannot Keep Up\n";
-		}
+		nextFrameTime += duration_cast<nanoseconds>(period);;
 
 		if (cameraFrames) {
 			for (int i = 0; i < devices.size(); i++) {
@@ -31,16 +24,30 @@ void CameraSystem::cameraReadThread() {
 		else {
 			std::cout << "Camera Frames not initialised\n";
 		}
+
+		auto currentTime = high_resolution_clock::now();
+
+		if (currentTime < nextFrameTime) {
+			std::this_thread::sleep_until(nextFrameTime);
+			std::cout << "Camera Read Thread is on time\n";
+		}
+		else {
+			auto late = duration_cast<milliseconds>(currentTime - nextFrameTime);
+			std::cout << "Camera Read Thread Cannot Keep Up, thread is " << late.count() << "ms late\n";
+
+			nextFrameTime = high_resolution_clock::now();
+		}
 	}
 }
 
 void CameraSystem::connectDevices() {
-	lastFrameRead = high_resolution_clock::now();
+	vector<ps3eye::PS3EYECam::PS3EYERef> currentDevices = PS3EYECam::getDevices(true); // this can only see devices that are not connected
 
-	vector<ps3eye::PS3EYECam::PS3EYERef> currentDevices = PS3EYECam::getDevices(true);
 
-	if (devices.size() == currentDevices.size()) {
-		return; // no added/removed cams
+	std::cout << currentDevices.size() << " new cameras detected\n";
+
+	if (currentDevices.size() == 0) {
+		return;
 	}
 
 	cameraThreadShouldRun = false;
@@ -49,9 +56,20 @@ void CameraSystem::connectDevices() {
 		cameraWorker.join(); // if this function has already been ran, there might already be a thread listening to camera. It needs to be stopped while the pointers get moved
 	}
 
-	numberOfCams = currentDevices.size();
+	for (int i = 0; i < currentDevices.size(); i++) {
 
-	devices = currentDevices;
+		if (!currentDevices[i]->init(WIDTH, HEIGHT, FPS)) {
+			cout << "could not init camera: " << i << "\n";
+		}
+		currentDevices[i]->start();
+		currentDevices[i]->setAutogain(true);
+		currentDevices[i]->setAutoWhiteBalance(true);
+	}
+
+	devices.reserve(devices.size() + currentDevices.size());
+	devices.insert(devices.end(), currentDevices.begin(), currentDevices.end());
+
+	numberOfCams += currentDevices.size();
 
 	if (cameraFrames) {
 		delete[] cameraFrames;
@@ -72,16 +90,6 @@ void CameraSystem::connectDevices() {
 		for (int i = 0; i < numberOfCams; i++) {
 			cameraFrames[i] = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
 		}
-	}
-
-	for (int i = 0; i < numberOfCams; i++) {
-
-		if (!devices[i]->init(WIDTH, HEIGHT, FPS)) {
-			cout << "could not init camera: " << i << "\n";
-		}
-		devices[i]->start();
-		devices[i]->setAutogain(true);
-		devices[i]->setAutoWhiteBalance(true);
 	}
 
 	cameraThreadShouldRun = true;
