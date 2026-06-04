@@ -12,7 +12,7 @@
 
 class UserViewport {
 public:
-	bool init();
+	int init();
 
 	~UserViewport();
 
