@@ -40,7 +40,7 @@ void CameraSystem::connectDevices() {
 	vector<ps3eye::PS3EYECam::PS3EYERef> currentDevices = PS3EYECam::getDevices(true);
 
 	if (devices.size() == currentDevices.size()) {
-		return; // no added cams
+		return; // no added/removed cams
 	}
 
 	cameraThreadShouldRun = false;
@@ -90,14 +90,6 @@ void CameraSystem::connectDevices() {
 
 CameraSystem::CameraSystem() {
 	period = std::chrono::duration<double>(1.0 / FPS);
-}
-
-int CameraSystem::init() {
-	period = std::chrono::duration<double>(1.0 / FPS);
-
-	lastFrameRead = high_resolution_clock::now();
-	cameraThreadShouldRun = true;
-	std::thread cameraWorker(cameraReadThread);
 }
 
 CameraSystem::~CameraSystem() {
