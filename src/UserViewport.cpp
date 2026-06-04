@@ -6,6 +6,8 @@ int UserViewport::init() {
     if (main->init()) {
         return 1;
     }
+
+    return 0;
 }
 
 void UserViewport::updateOpenGLTexture(GLuint textureId, const cv::Mat& frame) {
