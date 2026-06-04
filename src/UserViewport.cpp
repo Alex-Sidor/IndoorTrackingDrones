@@ -32,7 +32,7 @@ UserViewport::~UserViewport() {
 
     if (camTextures) {
         for (int i = 0; i < numberOfTrackedCams; i++) {
-            glDeleteTextures(1, &camTextures[i])
+            glDeleteTextures(1, &camTextures[i]);
         }
 
         delete[] camTextures;
@@ -42,7 +42,7 @@ UserViewport::~UserViewport() {
 
 void UserViewport::updateTrackedCameras(CameraSystem* sys) {
     
-    int numberOfNewCams = sys->getNumberOfCameras()
+    int numberOfNewCams = sys->getNumberOfCameras();
 
     if (numberOfTrackedCams == numberOfNewCams) {
         return;
@@ -50,7 +50,7 @@ void UserViewport::updateTrackedCameras(CameraSystem* sys) {
 
     if (camTextures) {
         for (int i = 0; i < numberOfTrackedCams; i++) {
-            glDeleteTextures(1, &camTextures[i])
+            glDeleteTextures(1, &camTextures[i]);
         }
         
         delete[] camTextures;
@@ -89,7 +89,7 @@ void UserViewport::update(CameraSystem* sys) {
 
     if (camTextures && frames) {
         for (int i = 0; i < numberOfTrackedCams; i++) {
-            updateOpenGLTexture(camTextures[i], frame1);
+            updateOpenGLTexture(camTextures[i], frames[i]);
         }
     }
 
@@ -112,7 +112,7 @@ void UserViewport::update(CameraSystem* sys) {
 
     if (camTextures) {
         for (int i = 0; i < numberOfTrackedCams; i++) {
-            ImGui::Text("%d", myCount);
+            ImGui::Text("%d", i);
             ImGui::Image((ImTextureID)(intptr_t)camTextures[i], ImVec2(WIDTH, HEIGHT));
         }
     }
@@ -122,13 +122,13 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImGui::Render();
     int display_w, display_h;
-    glfwGetFramebufferSize(main.getWindow(), &display_w, &display_h);
+    glfwGetFramebufferSize(main->getWindow(), &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     glClearColor(0.15f, 0.16f, 0.18f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(main.getWindow());
+    glfwSwapBuffers(main->getWindow());
 }
 
 bool UserViewport::shouldClose() {
