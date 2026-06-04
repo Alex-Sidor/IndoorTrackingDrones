@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+#include <atomic>
+
 #include <chrono>
 #include <thread>
 #include <atomic>
@@ -26,10 +28,9 @@ public:
 	void connectDevices();
 
 private:
-	bool cameraThreadShouldRun = false;
+	std::atomic<bool> cameraThreadShouldRun = false;
 	void cameraReadThread();
 	std::chrono::duration<double> period;
-
 
 	std::thread cameraWorker;
 	
