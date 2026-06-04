@@ -29,16 +29,22 @@ int main() {
 
     viewport = new UserViewport;
 
-    if (viewport->init()) {
-        return 0;
+    if (!viewport->init()) {
+        while (!viewport->shouldClose()) {
+            viewport->update(sys);
+
+            if (sys->getNumberOfCameras() < 2) {
+                std::cout << "Not enough cameras\n";
+            }
+        }
     }
 
-    while (!viewport->shouldClose()) {
-        viewport->update(sys);
+    if (viewport) {
+        delete viewport;
+    }
 
-        if (sys->getNumberOfCameras() < 2) {
-            std::cout << "Not enough cameras\n";
-        }
+    if (sys) {
+        delete sys;
     }
 
     return 0;
