@@ -34,11 +34,38 @@ void CameraSystem::cameraReadThread() {
 	}
 }
 
-int CameraSystem::init() {
-	period = std::chrono::duration<double>(1.0 / FPS);
-	
-	devices = PS3EYECam::getDevices(true);
-	numberOfCams = devices.size();
+void CameraSystem::connectDevices() {
+	lastFrameRead = high_resolution_clock::now();
+
+	vector<ps3eye::PS3EYECam::PS3EYERef> currentDevices = PS3EYECam::getDevices(true);
+
+	if (devices.size() == currentDevices.size()) {
+		return; // no added cams
+	}
+
+	cameraThreadShouldRun = false;
+
+	if (cameraWorker.joinable()) {
+		cameraWorker.join(); // if this function has already been ran, there might already be a thread listening to camera. It needs to be stopped while the pointers get moved
+	}
+
+	numberOfCams = currentDevices.size();
+
+	devices = currentDevices;
+
+	if (cameraFrames) {
+		delete[] cameraFrames;
+		cameraFrames = nullptr;
+	}
+
+	if (numberOfCams == 0) {
+		cout << "No Cameras found\n";
+		return;
+	}
+	else {
+		cout << numberOfCams << " Cameras found\n";
+	}
+
 	cameraFrames = new cv::Mat[numberOfCams];
 
 	if (cameraFrames) {
@@ -57,8 +84,18 @@ int CameraSystem::init() {
 		devices[i]->setAutoWhiteBalance(true);
 	}
 
-	lastFrameRead = high_resolution_clock::now();
+	cameraThreadShouldRun = true;
+	cameraWorker = thread(&CameraSystem::cameraReadThread, this);
+}
 
+CameraSystem::CameraSystem() {
+	period = std::chrono::duration<double>(1.0 / FPS);
+}
+
+int CameraSystem::init() {
+	period = std::chrono::duration<double>(1.0 / FPS);
+
+	lastFrameRead = high_resolution_clock::now();
 	cameraThreadShouldRun = true;
 	std::thread cameraWorker(cameraReadThread);
 }
@@ -75,6 +112,7 @@ CameraSystem::~CameraSystem() {
 
 	if (cameraFrames) {
 		delete[] cameraFrames;
+		cameraFrames = nullptr;
 	}
 }
 

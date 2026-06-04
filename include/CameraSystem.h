@@ -25,6 +25,8 @@ public:
 
 	cv::Mat* getCameraFrames();
 
+	void connectDevices();
+
 private:
 	bool cameraThreadShouldRun = false;
 	void cameraReadThread();
