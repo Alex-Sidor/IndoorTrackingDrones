@@ -103,17 +103,31 @@ void UserViewport::update(CameraSystem* sys) {
         std::cout << "need to add calibrationz\n";
     }
 
+    ImGui::SameLine();
+
     if (ImGui::Button("Refresh")) {
         sys->connectDevices(); // checks for any new cameras
     }
 
+    ImGui::Separator();
+
     ImGui::BeginGroup();
 
-
     if (camTextures) {
+
+        ImVec2 scale = ImVec2(float(WIDTH), float(HEIGHT));
+
         for (int i = 0; i < numberOfTrackedCams; i++) {
+            ImGui::BeginGroup();
+            
             ImGui::Text("%d", i);
-            ImGui::Image((ImTextureID)(intptr_t)camTextures[i], ImVec2(WIDTH, HEIGHT));
+            ImGui::Image((ImTextureID)(intptr_t)camTextures[i], scale);
+
+            ImGui::EndGroup();
+
+            if (i < numberOfTrackedCams - 1) {
+                ImGui::SameLine();
+            }
         }
     }
     ImGui::EndGroup();
