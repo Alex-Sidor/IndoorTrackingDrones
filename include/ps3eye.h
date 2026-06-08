@@ -181,6 +181,9 @@ public:
     // - If there is no frame available, this function will block until one is
     // - The output buffer must be sized correctly, depending out the output format. See EOutputFormat.
     void getFrame(uint8_t* frame);
+
+    // custom addition that allows debayer while not being held inside a lock
+    void PS3EYECam::debayerWrapper(int frame_width, int frame_height, const uint8_t* inBayer, uint8_t* outBuffer, bool inBGR);
     
     uint32_t getWidth() const { return frame_width; }
     uint32_t getHeight() const { return frame_height; }

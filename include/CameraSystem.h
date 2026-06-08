@@ -42,5 +42,8 @@ private:
 
 	int numberOfCams = 0;
 
-	cv::Mat* cameraFrames = nullptr;
+	cv::Mat* cameraFrames0 = nullptr;
+	cv::Mat* cameraFrames1 = nullptr;
+
+	std::atomic<bool> writingToBuf0 = true;
 };

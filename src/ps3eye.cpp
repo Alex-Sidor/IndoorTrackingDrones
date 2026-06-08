@@ -1218,6 +1218,11 @@ namespace ps3eye {
     {
         urb->frame_queue->Dequeue(frame, frame_width, frame_height, frame_output_format);
     }
+
+    void PS3EYECam::debayerWrapper(int frame_width, int frame_height, const uint8_t* inBayer, uint8_t* outBuffer, bool inBGR)
+    {
+        urb->frame_queue->DebayerRGB(frame_width, frame_height, inBayer, outBuffer, inBGR);
+    }
     
     bool PS3EYECam::open_usb()
     {

@@ -4,20 +4,38 @@ using namespace std::chrono;
 using namespace std;
 using namespace ps3eye;
 
+double getTime(steady_clock::time_point start) {
+	auto now = steady_clock::now();
+	return duration<double, std::micro>(now - start).count();
+}
+
 void CameraSystem::cameraReadThread() {
+	
+	int frameSize = WIDTH * HEIGHT;
 
-	auto nextFrameTime = high_resolution_clock::now();
-
-	period = std::chrono::duration<double>(1.0 / FPS);
+	uint8_t* buf = new uint8_t[frameSize];
+	
 
 	while (cameraThreadShouldRun) {
-		nextFrameTime += duration_cast<nanoseconds>(period);;
 
-		if (cameraFrames) {
+		auto start = steady_clock::now();
+
+		if (cameraFrames0 && cameraFrames1) {
 			for (int i = 0; i < devices.size(); i++) {
+				std::cout << getTime(start) << " ";
 				if (devices[i]->isInitialized()) {
+					std::cout << getTime(start) << " ";
+					devices[i]->getFrame(buf);
+					std::cout << getTime(start) << "\n\n";
 
-					devices[i]->getFrame(cameraFrames[i].data);
+					if (writingToBuf0) {
+						devices[i]->debayerWrapper(WIDTH, HEIGHT, buf, cameraFrames0[i].data, true); 
+						// sorry for the magic "true" but all ps3 eye cameras ive encountered are bgr
+						// In later stages ill make it so you can configure per camera, as of right now I don't have a clue how to do that
+					}
+					else {
+						devices[i]->debayerWrapper(WIDTH, HEIGHT, buf, cameraFrames1[i].data, true);
+					}
 				}
 			}
 		}
@@ -25,19 +43,13 @@ void CameraSystem::cameraReadThread() {
 			std::cout << "Camera Frames not initialised\n";
 		}
 
-		auto currentTime = high_resolution_clock::now();
-
-		if (currentTime < nextFrameTime) {
-			std::this_thread::sleep_until(nextFrameTime);
-			std::cout << "Camera Read Thread is on time\n";
-		}
-		else {
-			auto late = duration_cast<milliseconds>(currentTime - nextFrameTime);
-			std::cout << "Camera Read Thread Cannot Keep Up, thread is " << late.count() << "ms late\n";
-
-			nextFrameTime = high_resolution_clock::now();
-		}
+		writingToBuf0 = !writingToBuf0;
 	}
+
+	if (buf) {
+		delete[] buf;
+	}
+
 }
 
 void CameraSystem::connectDevices() {
@@ -58,7 +70,7 @@ void CameraSystem::connectDevices() {
 
 	for (int i = 0; i < currentDevices.size(); i++) {
 
-		if (!currentDevices[i]->init(WIDTH, HEIGHT, FPS)) {
+		if (!currentDevices[i]->init(WIDTH, HEIGHT, FPS, PS3EYECam::EOutputFormat::Bayer)) {
 			cout << "could not init camera: " << i << "\n";
 		}
 		currentDevices[i]->start();
@@ -71,24 +83,36 @@ void CameraSystem::connectDevices() {
 
 	numberOfCams += currentDevices.size();
 
-	if (cameraFrames) {
-		delete[] cameraFrames;
-		cameraFrames = nullptr;
+	if (cameraFrames0) {
+		delete[] cameraFrames0;
+		cameraFrames0 = nullptr;
+	}
+
+	if (cameraFrames1) {
+		delete[] cameraFrames1;
+		cameraFrames1 = nullptr;
 	}
 
 	if (numberOfCams == 0) {
-		cout << "No Cameras found\n";
+		cout << "No Cameras connected\n";
 		return;
 	}
 	else {
-		cout << numberOfCams << " Cameras found\n";
+		cout << numberOfCams << " Cameras connected\n";
 	}
 
-	cameraFrames = new cv::Mat[numberOfCams];
+	cameraFrames0 = new cv::Mat[numberOfCams];
+	cameraFrames1 = new cv::Mat[numberOfCams];
 
-	if (cameraFrames) {
+	if (cameraFrames0) {
 		for (int i = 0; i < numberOfCams; i++) {
-			cameraFrames[i] = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
+			cameraFrames0[i] = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
+		}
+	}
+
+	if (cameraFrames1) {
+		for (int i = 0; i < numberOfCams; i++) {
+			cameraFrames1[i] = cv::Mat::zeros(cv::Size(WIDTH, HEIGHT), CV_8UC3);
 		}
 	}
 
@@ -101,8 +125,10 @@ CameraSystem::CameraSystem() {
 }
 
 CameraSystem::~CameraSystem() {
-	cameraThreadShouldRun = false; // make the camera thread do its last run
-	cameraWorker.join(); // sync and close it with this thread
+	cameraThreadShouldRun = false;
+	if (cameraWorker.joinable()) {
+		cameraWorker.join();
+	}
 	
 	for (int i = 0; i < numberOfCams; i++) {
 		if (devices[i]->isInitialized()) {
@@ -110,9 +136,14 @@ CameraSystem::~CameraSystem() {
 		}
 	}
 
-	if (cameraFrames) {
-		delete[] cameraFrames;
-		cameraFrames = nullptr;
+	if (cameraFrames0) {
+		delete[] cameraFrames0;
+		cameraFrames0 = nullptr;
+	}
+
+	if (cameraFrames1) {
+		delete[] cameraFrames1;
+		cameraFrames1 = nullptr;
 	}
 }
 
@@ -121,5 +152,10 @@ int CameraSystem::getNumberOfCameras() {
 }
 
 cv::Mat* CameraSystem::getCameraFrames() {
-	return cameraFrames;
+	if (writingToBuf0) {
+		return cameraFrames1;
+	}
+	else {
+		return cameraFrames0;
+	}
 }
