@@ -12,7 +12,7 @@ int Window::init() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // create glfw window
-    window = glfwCreateWindow(1340, 580, "Indoor Tracking Drones - Camera Feed Setup", nullptr, nullptr);
+    window = glfwCreateWindow(1340, 580, "Indoor Tracking", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
