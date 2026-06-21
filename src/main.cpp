@@ -34,7 +34,7 @@ int main() {
             viewport->update(sys);
 
             if (sys->getNumberOfCameras() < 2) {
-                std::cout << "Not enough cameras\n";
+                //std::cout << "Not enough cameras\n";
             }
         }
     }
