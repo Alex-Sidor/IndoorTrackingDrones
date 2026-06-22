@@ -449,14 +449,14 @@ namespace ps3eye {
         
         uint8_t* Enqueue()
         {
-            size_t currentBufferIndex = 1 - current.load(std::memory_order_acquire);
+            size_t currentBufferIndex = 1 - current.load(std::memory_order_relaxed);
             return frame_buffer + (currentBufferIndex * frame_size);
         }
 
         void Publish()
         {
-            size_t currentBufferIndex = 1 - current.load(std::memory_order_acquire);
-            current.fetch_add(1, std::memory_order_release);
+            size_t nextBufferIndex = 1 - current.load(std::memory_order_relaxed);
+            current.store(nextBufferIndex, std::memory_order_release);
         }
 
         void Dequeue(uint8_t* new_frame, int frame_width, int frame_height, PS3EYECam::EOutputFormat outputFormat)
