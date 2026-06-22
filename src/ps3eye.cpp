@@ -74,7 +74,7 @@ void SetThreadName(const char* threadName)
 
 namespace ps3eye {
     
-#define TRANSFER_SIZE        16384
+#define TRANSFER_SIZE        307200 // perfect match for 640x480 resolution, will make this adaptive to other resolutions in the future. This doesn't overload the kernel anymore with lots of packet calls
 #define NUM_TRANSFERS        5
     
 #define OV534_REG_ADDRESS    0xf1    /* sensor address */
