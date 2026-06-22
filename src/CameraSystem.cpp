@@ -4,11 +4,6 @@ using namespace std::chrono;
 using namespace std;
 using namespace ps3eye;
 
-double getTime(steady_clock::time_point start) {
-	auto now = steady_clock::now();
-	return duration<double, std::micro>(now - start).count();
-}
-
 void CameraSystem::cameraReadThread() {
 	
 	int frameSize = WIDTH * HEIGHT;
@@ -20,9 +15,7 @@ void CameraSystem::cameraReadThread() {
 		if (cameraFrames) {
 			for (int i = 0; i < devices.size(); i++) {
 				if (devices[i]->isInitialized()) {
-					auto start = steady_clock::now();
 					devices[i]->getFrame(cameraFrames[i].data);
-					//std::cout << getTime(start) << "\n";
 				}
 			}
 		}
@@ -30,7 +23,7 @@ void CameraSystem::cameraReadThread() {
 			std::cout << "Camera Frames not initialised\n";
 		}
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(period);
 	}
 }
 

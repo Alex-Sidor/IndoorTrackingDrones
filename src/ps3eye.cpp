@@ -455,23 +455,8 @@ namespace ps3eye {
             return frame_buffer + (currentBufferIndex * frame_size);
         }
 
-        double getTime(std::chrono::steady_clock::time_point start) {
-            using namespace std::chrono;
-            
-            auto now = steady_clock::now();
-            return duration<double, std::micro>(now - start).count();
-        }
-
         void Publish()
         {
-            static auto start = std::chrono::steady_clock::now();
-
-
-            std::cout << getTime(start) << "\n";
-
-            start = std::chrono::steady_clock::now();
-
-
             size_t nextBufferIndex = 1 - current.load(std::memory_order_relaxed);
             current.store(nextBufferIndex, std::memory_order_release);
         }
