@@ -22,7 +22,7 @@ void CameraSystem::cameraReadThread() {
 				if (devices[i]->isInitialized()) {
 					auto start = steady_clock::now();
 					devices[i]->getFrame(cameraFrames[i].data);
-					std::cout << getTime(start) << "\n";
+					//std::cout << getTime(start) << "\n";
 				}
 			}
 		}
@@ -30,7 +30,7 @@ void CameraSystem::cameraReadThread() {
 			std::cout << "Camera Frames not initialised\n";
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 
