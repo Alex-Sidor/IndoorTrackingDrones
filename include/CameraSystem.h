@@ -31,6 +31,7 @@ public:
 
 private:
 	std::atomic<bool> cameraThreadShouldRun = false;
+	
 	void cameraReadThread();
 	std::chrono::duration<double> period;
 
@@ -42,8 +43,5 @@ private:
 
 	int numberOfCams = 0;
 
-	cv::Mat* cameraFrames0 = nullptr;
-	cv::Mat* cameraFrames1 = nullptr;
-
-	std::atomic<bool> writingToBuf0 = true;
+	cv::Mat* cameraFrames = nullptr;
 };

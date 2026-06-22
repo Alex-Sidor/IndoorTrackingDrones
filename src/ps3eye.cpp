@@ -429,16 +429,14 @@ namespace ps3eye {
     class FrameQueue
     {
     public:
-        FrameQueue(uint32_t frame_size) :
-        frame_size            (frame_size),
-        num_frames            (2),
-        frame_buffer        ((uint8_t*)malloc(frame_size * num_frames)),
-        head                (0),
-        tail                (0),
-        available            (0)
+        FrameQueue(uint32_t frame_size)
+            : frame_size(frame_size),
+            frame_buffer{ new uint8_t[frame_size * 2] },
+            storageBuffer{ new uint8_t[frame_size] },
+            current(0)
         {
         }
-        
+
         ~FrameQueue()
         {
             free(frame_buffer);
@@ -451,61 +449,31 @@ namespace ps3eye {
         
         uint8_t* Enqueue()
         {
-            uint8_t* new_frame = NULL;
-            
-            std::lock_guard<std::mutex> lock(mutex);
-            
-            // Unlike traditional producer/consumer, we don't block the producer if the buffer is full (ie. the consumer is not reading data fast enough).
-            // Instead, if the buffer is full, we simply return the current frame pointer, causing the producer to overwrite the previous frame.
-            // This allows performance to degrade gracefully: if the consumer is not fast enough (< Camera FPS), it will miss frames, but if it is fast enough (>= Camera FPS), it will see everything.
-            //
-            // Note that because the the producer is writing directly to the ring buffer, we can only ever be a maximum of num_frames-1 ahead of the consumer,
-            // otherwise the producer could overwrite the frame the consumer is currently reading (in case of a slow consumer)
-            if (available >= num_frames - 1)
-            {
-                return frame_buffer + head * frame_size;
-            }
-            
-            // Note: we don't need to copy any data to the buffer since the USB packets are directly written to the frame buffer.
-            // We just need to update head and available count to signal to the consumer that a new frame is available
-            head = (head + 1) % num_frames;
-            available++;
-            
-            // Determine the next frame pointer that the producer should write to
-            new_frame = frame_buffer + head * frame_size;
-            
-            // Signal consumer that data became available
-            empty_condition.notify_one();
-            
-            return new_frame;
+            size_t currentBufferIndex = 1 - current.load(std::memory_order_acquire);
+            return frame_buffer + (currentBufferIndex * frame_size);
         }
-        
+
+        void Publish()
+        {
+            size_t currentBufferIndex = 1 - current.load(std::memory_order_acquire);
+            current.fetch_add(1, std::memory_order_release);
+        }
+
         void Dequeue(uint8_t* new_frame, int frame_width, int frame_height, PS3EYECam::EOutputFormat outputFormat)
         {
-            std::unique_lock<std::mutex> lock(mutex);
-            
-            // If there is no data in the buffer, wait until data becomes available
-            empty_condition.wait(lock, [this] () { return available != 0; });
-            
-            // Copy from internal buffer
-            uint8_t* source = frame_buffer + frame_size * tail;
-            
-            if (outputFormat == PS3EYECam::EOutputFormat::Bayer)
+            size_t readingBufferOffset = current.load(std::memory_order_acquire) * frame_size;
+
+            memcpy(storageBuffer, (frame_buffer + readingBufferOffset), frame_size); // takes image out of buffer immediately
+             
+            // only debayer after memory is secured, this reduces screen tearing
+            if (outputFormat == PS3EYECam::EOutputFormat::BGR || outputFormat == PS3EYECam::EOutputFormat::RGB)
             {
-                memcpy(new_frame, source, frame_size);
-            }
-            else if (outputFormat == PS3EYECam::EOutputFormat::BGR ||
-                     outputFormat == PS3EYECam::EOutputFormat::RGB)
-            {
-                DebayerRGB(frame_width, frame_height, source, new_frame, outputFormat == PS3EYECam::EOutputFormat::BGR);
+                DebayerRGB(frame_width, frame_height, storageBuffer, new_frame, outputFormat == PS3EYECam::EOutputFormat::BGR);
             }
             else if (outputFormat == PS3EYECam::EOutputFormat::Gray)
             {
-                DebayerGray(frame_width, frame_height, source, new_frame);
+                DebayerGray(frame_width, frame_height, storageBuffer, new_frame);
             }
-            // Update tail and available count
-            tail = (tail + 1) % num_frames;
-            available--;
         }
         
         void DebayerGray(int frame_width, int frame_height, const uint8_t* inBayer, uint8_t* outBuffer)
@@ -713,13 +681,13 @@ namespace ps3eye {
         
     private:
         uint32_t                frame_size;
-        uint32_t                num_frames;
-        
         uint8_t*                frame_buffer;
-        uint32_t                head;
-        uint32_t                tail;
-        uint32_t                available;
+        uint8_t*                storageBuffer;
         
+        std::atomic<int> current;
+
+        int lastSeen = 0;
+
         std::mutex                mutex;
         std::condition_variable    empty_condition;
     };
@@ -857,6 +825,9 @@ namespace ps3eye {
             
             if (packet_type == LAST_PACKET) {
                 cur_frame_data_len = 0;
+
+                frame_queue->Publish();
+
                 cur_frame_start = frame_queue->Enqueue();
                 //debug("frame completed %d\n", frame_complete_ind);
             }
@@ -1217,11 +1188,6 @@ namespace ps3eye {
     void PS3EYECam::getFrame(uint8_t* frame)
     {
         urb->frame_queue->Dequeue(frame, frame_width, frame_height, frame_output_format);
-    }
-
-    void PS3EYECam::debayerWrapper(int frame_width, int frame_height, const uint8_t* inBayer, uint8_t* outBuffer, bool inBGR)
-    {
-        urb->frame_queue->DebayerRGB(frame_width, frame_height, inBayer, outBuffer, inBGR);
     }
     
     bool PS3EYECam::open_usb()
