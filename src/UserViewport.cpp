@@ -3,6 +3,8 @@
 int UserViewport::init() {
     main = new Window();
 
+    wireframeScene = new Scene();
+
     if (main->init()) {
         return 1;
     }
@@ -28,6 +30,10 @@ UserViewport::~UserViewport() {
 
     if (main) {
         delete main;
+    }
+
+    if (wireframeScene) {
+        delete wireframeScene;
     }
 
     if (camTextures) {
@@ -131,6 +137,14 @@ void UserViewport::update(CameraSystem* sys) {
         }
     }
     ImGui::EndGroup();
+
+    ImGui::End();
+
+    ImGui::Begin("Viewport");
+
+    ImVec2 imgScale = ImVec2(float(500), float(500));
+
+    ImGui::Image((ImTextureID)(intptr_t)wireframeScene->update(), imgScale);
 
     ImGui::End();
 

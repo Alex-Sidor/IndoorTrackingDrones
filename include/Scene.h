@@ -1,20 +1,25 @@
 #pragma once
 
+#include <glad/glad.h> 
+#include <GLFW/glfw3.h> 
+
 class Scene {
 public:
 
 	Scene();
 
-	drawCamera();
+	unsigned int update();
 
-	drawLine();
+	void drawCamera();
 
-	drawPoint();
+	void drawLine();
 
-	setColour();
+	void drawPoint();
+
+	void setColour();
 
 private:
 
-
-
+	unsigned int colourBuffer;
+	unsigned int fbo;
 };

@@ -9,6 +9,7 @@
 
 #include "Window.h"
 #include "CameraSystem.h"
+#include "Scene.h"
 
 class UserViewport {
 public:
@@ -28,7 +29,8 @@ private:
 
 	Window* main = nullptr;
 
+	Scene* wireframeScene = nullptr;
+
 	GLuint* camTextures = nullptr;
 	int numberOfTrackedCams = 0;
-
 };
