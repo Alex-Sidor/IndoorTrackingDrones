@@ -3,11 +3,11 @@
 int UserViewport::init() {
     main = new Window();
 
-    wireframeScene = new Scene();
-
     if (main->init()) {
         return 1;
     }
+
+    wireframeScene = new Scene();
 
     return 0;
 }
