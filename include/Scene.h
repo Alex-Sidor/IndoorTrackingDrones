@@ -51,6 +51,15 @@ public:
 		current += objectSize;
 	}
 
+	Vec3* getObject(size_t index) {
+		if (!buf) {
+			std::cout << "buffer in stackbuf failed to initialise";
+			return;
+		}
+
+		return buf + (objectSize * index);
+	}
+
 	void clear() {
 		current = 0;
 	}
