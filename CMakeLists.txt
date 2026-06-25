@@ -90,7 +90,7 @@ target_link_libraries(IndoorTrackingDrones
     glm
 )
 
-# move dll's
+# move binaries
 set(LUBUSB_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 add_custom_command(TARGET IndoorTrackingDrones POST_BUILD
@@ -109,4 +109,9 @@ add_custom_command(TARGET IndoorTrackingDrones POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "$<TARGET_FILE:glfw>"
         "$<TARGET_FILE_DIR:IndoorTrackingDrones>/"
+)
+
+set_target_properties(IndoorTrackingDrones PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:IndoorTrackingDrones>"
+    XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$<TARGET_FILE_DIR:IndoorTrackingDrones>"
 )
