@@ -21,6 +21,8 @@ public:
 
 	void update(CameraSystem* sys);
 
+	Scene* getScene();
+
 private:
 
 	void updateTrackedCameras(CameraSystem* sys);
