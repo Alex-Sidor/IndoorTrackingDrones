@@ -165,3 +165,7 @@ bool UserViewport::shouldClose() {
     }
     return 1;
 }
+
+Scene* UserViewport::getScene() {
+    return wireframeScene;
+}
