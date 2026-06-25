@@ -18,10 +18,10 @@ struct Camera {
 	Vec3 up;
 };
 
-class stackBuf {
+class StackBuf {
 public:
 
-	stackBuf(size_t maxObjects, size_t sizeOfObject) {
+	void init(size_t maxObjects, size_t sizeOfObject) {
 
 		max = maxObjects;
 
@@ -32,7 +32,7 @@ public:
 		clear();
 	}
 
-	~stackBuf() {
+	~StackBuf() {
 
 		if (buf) {
 			delete[] buf;
@@ -95,21 +95,12 @@ private:
 
 	size_t VBSize;
 
-	size_t nLines;
-	size_t nPoints;
-	size_t nCameras;
-
-	size_t maxLines;
-	size_t maxPoints;
-	size_t maxCameras;
+	StackBuf cameraStack;
+	StackBuf lineStack;
+	StackBuf pointStack;
 
 	unsigned int colourBuffer;
 	unsigned int fbo;
-
-	Camera* cameraStack;
-	Line* lineStack;
-	Vec3* pointStack;
-
 
 	Shader* triOutline;
 	

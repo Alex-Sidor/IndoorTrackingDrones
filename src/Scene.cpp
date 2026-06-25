@@ -1,18 +1,12 @@
 #include "Scene.h"
 
 Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
-	
-	nLines = maxLines;
-	nPoints = maxPoints;
-	nCameras = maxCameras;
 
 	VBSize = maxLines + maxPoints + maxCameras;
 
-	lineStack = new Line[nLines];
-	pointStack = new Vec3[nPoints];
-	cameraStack = new Camera[nCameras];
-
-
+	lineStack.init(maxLines, 2);
+	pointStack.init(maxPoints, 1);
+	cameraStack.init(maxCameras, 3);
 
 	glGenTextures(1, &colourBuffer);
 	glBindTexture(GL_TEXTURE_2D, colourBuffer);
@@ -39,15 +33,6 @@ Scene::~Scene() {
 	
 	if (point) 
 		delete point;
-
-	if (lineStack)
-		delete[] lineStack;
-
-	if(pointStack)
-		delete[] pointStack;
-
-	if(cameraStack)
-		delete[] cameraStack;
 }
 
 unsigned int Scene::update() {
@@ -58,22 +43,22 @@ unsigned int Scene::update() {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if (cameraStack.size() > 0 || lineStack.size() > 0) {
+	if (cameraStack.getFilledSize() > 0 || lineStack.getFilledSize() > 0) {
 		triOutline->use();
 
-		for (size_t i = 0; i < cameraStack.size(); i++) {
+		for (size_t i = 0; i < cameraStack.getFilledSize(); i++) {
 			
 		}
 
-		for (size_t i = 0; i < lineStack.size(); i++) {
+		for (size_t i = 0; i < lineStack.getFilledSize(); i++) {
 
 		}
 	}
 
-	if (pointStack.size() > 0) {
+	if (pointStack.getFilledSize() > 0) {
 		point->use();
 
-		for (size_t i = 0; i < pointStack.size(); i++) {
+		for (size_t i = 0; i < pointStack.getFilledSize(); i++) {
 
 		}
 	}
@@ -88,15 +73,15 @@ unsigned int Scene::update() {
 // these can be called whenever, only drawn when scene is updated
 
 void Scene::drawCamera(Camera c) {
-	cameraStack.push_back(c);
+	cameraStack.addObject((Vec3*)&c);
 }
 
 void Scene::drawLine(Line l) {
-	lineStack.push_back(l);
+	lineStack.addObject((Vec3*)&l);
 }
 
 void Scene::drawPoint(Vec3 p) {
-	pointStack.push_back(p);
+	pointStack.addObject((Vec3*)&p);
 }
 
 //
