@@ -18,10 +18,66 @@ struct Camera {
 	Vec3 up;
 };
 
+class stackBuf {
+public:
+
+	stackBuf(size_t maxObjects, size_t sizeOfObject) {
+
+		max = maxObjects;
+
+		objectSize = sizeOfObject;
+
+		buf = new  Vec3[objectSize * max];
+
+		clear();
+	}
+
+	~stackBuf() {
+
+		if (buf) {
+			delete[] buf;
+		}
+
+	}
+
+	void addObject(Vec3* add) {
+		if (!buf) {
+			std::cout << "buffer in stackbuf failed to initialise";
+			return;
+		}
+		
+		memcpy(buf + current, add, objectSize * sizeof(Vec3));
+
+		current += objectSize;
+	}
+
+	void clear() {
+		current = 0;
+	}
+
+	size_t getFilledSize() {
+		return current;
+	}
+
+	Vec3* getBufPtr() {
+		return buf;
+	}
+
+private:
+	size_t max;
+	size_t current;
+
+	size_t objectSize;
+
+	Vec3* buf;
+};
+
+
+
 class Scene {
 public:
 
-	Scene();
+	Scene(size_t maxLines, size_t maxPoints, size_t maxCameras);
 
 	~Scene();
 
@@ -37,12 +93,22 @@ public:
 
 private:
 
+	size_t VBSize;
+
+	size_t nLines;
+	size_t nPoints;
+	size_t nCameras;
+
+	size_t maxLines;
+	size_t maxPoints;
+	size_t maxCameras;
+
 	unsigned int colourBuffer;
 	unsigned int fbo;
 
-	std::vector<Camera> cameraStack;
-	std::vector<Line> lineStack;
-	std::vector<Vec3> pointStack;
+	Camera* cameraStack;
+	Line* lineStack;
+	Vec3* pointStack;
 
 
 	Shader* triOutline;

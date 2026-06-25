@@ -1,7 +1,19 @@
 #include "Scene.h"
 
-Scene::Scene() {
+Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	
+	nLines = maxLines;
+	nPoints = maxPoints;
+	nCameras = maxCameras;
+
+	VBSize = maxLines + maxPoints + maxCameras;
+
+	lineStack = new Line[nLines];
+	pointStack = new Vec3[nPoints];
+	cameraStack = new Camera[nCameras];
+
+
+
 	glGenTextures(1, &colourBuffer);
 	glBindTexture(GL_TEXTURE_2D, colourBuffer);
 
@@ -27,6 +39,15 @@ Scene::~Scene() {
 	
 	if (point) 
 		delete point;
+
+	if (lineStack)
+		delete[] lineStack;
+
+	if(pointStack)
+		delete[] pointStack;
+
+	if(cameraStack)
+		delete[] cameraStack;
 }
 
 unsigned int Scene::update() {
