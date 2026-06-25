@@ -14,6 +14,19 @@ Scene::Scene() {
 
 	// bind fbo to frame buffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
+
+
+	triOutline = new Shader("shaders/project.glsl", "shaders/triOutline.glsl");
+
+	point = new Shader("shaders/project.glsl", "shaders/point.glsl");
+}
+
+Scene::~Scene() {
+	if (triOutline)
+		delete triOutline;
+	
+	if (point) 
+		delete point;
 }
 
 unsigned int Scene::update() {
@@ -21,25 +34,51 @@ unsigned int Scene::update() {
 
 	// render everything put in stack
 
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	if (cameraStack.size() > 0 || lineStack.size() > 0) {
+		triOutline->use();
+
+		for (size_t i = 0; i < cameraStack.size(); i++) {
+			
+		}
+
+		for (size_t i = 0; i < lineStack.size(); i++) {
+
+		}
+	}
+
+	if (pointStack.size() > 0) {
+		point->use();
+
+		for (size_t i = 0; i < pointStack.size(); i++) {
+
+		}
+	}
+
+	
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return colourBuffer;
 }
 
-void Scene::drawCamera() {
-	//draw camera wirefram
+// these can be called whenever, only drawn when scene is updated
+
+void Scene::drawCamera(Camera c) {
+	cameraStack.push_back(c);
 }
 
-void Scene::drawLine() {
-	//draw wireframe line
+void Scene::drawLine(Line l) {
+	lineStack.push_back(l);
 }
 
-void Scene::drawPoint() {
-	// draw 2d plane facing the observe, paint with a circle shader
+void Scene::drawPoint(Vec3 p) {
+	pointStack.push_back(p);
 }
+
+//
 
 void Scene::setColour() {
 	// for all draw calls after this, draw them in this shader
