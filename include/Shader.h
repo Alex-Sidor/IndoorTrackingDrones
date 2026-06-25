@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Screen.h"
+#include "Window.h"
 
 #include <string>
 #include <fstream>
