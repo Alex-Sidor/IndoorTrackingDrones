@@ -7,7 +7,7 @@ int UserViewport::init() {
         return 1;
     }
 
-    wireframeScene = new Scene();
+    wireframeScene = new Scene(100,100,100);
 
     return 0;
 }

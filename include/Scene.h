@@ -54,7 +54,7 @@ public:
 	Vec3* getObject(size_t index) {
 		if (!buf) {
 			std::cout << "buffer in stackbuf failed to initialise";
-			return;
+			return &Vec3{0,0,0,};
 		}
 
 		return buf + (objectSize * index);
@@ -90,7 +90,7 @@ public:
 
 	~Scene();
 
-	unsigned int update();
+	GLuint update();
 
 	void drawCamera(Camera c);
 
@@ -102,17 +102,19 @@ public:
 
 private:
 
-	size_t VBSize;
+	size_t sizeOfVectorBuffer;
 
 	StackBuf cameraStack;
 	StackBuf lineStack;
 	StackBuf pointStack;
 
-	unsigned int colourBuffer;
-	unsigned int fbo;
-
 	Shader* triOutline;
-	
 	Shader* point;
 
+	GLuint colourBuffer;
+	GLuint fbo;
+
+	Vec3* vertexBuffer;
+
+	GLuint VAO, VBO;
 };

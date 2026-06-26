@@ -2,11 +2,36 @@
 
 Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
-	VBSize = maxLines + maxPoints + maxCameras;
+	// lines take 2 vectors
+	// points take 1 vector
+	// cameras take 3 vectors
+
 
 	lineStack.init(maxLines, 2);
 	pointStack.init(maxPoints, 1);
 	cameraStack.init(maxCameras, 3);
+
+	sizeOfVectorBuffer = maxLines*2 + maxPoints* 1 + maxCameras*3;
+
+	vertexBuffer = new Vec3[sizeOfVectorBuffer];
+
+	size_t amountOfBytes = sizeOfVectorBuffer * sizeof(Vec3); 
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER,VBO);
+	glBufferData(GL_ARRAY_BUFFER, amountOfBytes, NULL, GL_DYNAMIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 	glGenTextures(1, &colourBuffer);
 	glBindTexture(GL_TEXTURE_2D, colourBuffer);
@@ -33,9 +58,12 @@ Scene::~Scene() {
 	
 	if (point) 
 		delete point;
+
+	if (vertexBuffer)
+		delete[] vertexBuffer;
 }
 
-unsigned int Scene::update() {
+GLuint Scene::update() {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target
 
 	// render everything put in stack
@@ -43,15 +71,21 @@ unsigned int Scene::update() {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	size_t index = 0;
+
 	if (cameraStack.getFilledSize() > 0 || lineStack.getFilledSize() > 0) {
 		triOutline->use();
 
 		for (size_t i = 0; i < cameraStack.getFilledSize(); i++) {
-			
+			vertexBuffer[index] = *cameraStack.getObject(i);
+			index++;
 		}
 
-		for (size_t i = 0; i < lineStack.getFilledSize(); i++) {
 
+
+		for (size_t i = 0; i < lineStack.getFilledSize(); i++) {
+			vertexBuffer[index] = *lineStack.getObject(i);
+			index++;
 		}
 	}
 
@@ -59,11 +93,17 @@ unsigned int Scene::update() {
 		point->use();
 
 		for (size_t i = 0; i < pointStack.getFilledSize(); i++) {
-
+			vertexBuffer[index] = *pointStack.getObject(i);
+			index++;
 		}
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target
+
+	// render buffer
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, index);
+
 
 	return colourBuffer;
 }
