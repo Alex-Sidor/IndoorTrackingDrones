@@ -50,8 +50,8 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
 	shader = new Shader("../shaders/project.v", "../shaders/colour.f");
 
-	GLint rotLocation = glGetUniformLocation(shader->ID, "rotation");
-	GLint camLocation = glGetUniformLocation(shader->ID, "camPos");
+	rotLocation = glGetUniformLocation(shader->ID, "rotation");
+	camLocation = glGetUniformLocation(shader->ID, "camPos");
 }
 
 Scene::~Scene() {
@@ -90,8 +90,8 @@ GLuint Scene::update() {
 		matrixes[2] = Mat::createMatrixFromEuler(corners[2]);
 		matrixes[3] = Mat::createMatrixFromEuler(corners[3]);
 
-		for (size_t i = 0; i < 4; i++) {
-			corners[i] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[i]) + tmp.position;
+		for (size_t j = 0; j < 4; j++) {
+			corners[j] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[j]) + tmp.position;
 		}
 
 		Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
@@ -101,8 +101,8 @@ GLuint Scene::update() {
 
 
 
-		for (size_t i = 0; i < 12; i++) {
-			vertexBuffer[index + i] = tempBuffer[i];
+		for (size_t j = 0; j < 12; j++) {
+			vertexBuffer[index + j] = tempBuffer[j];
 		}
 
 
@@ -130,7 +130,8 @@ GLuint Scene::update() {
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, index * sizeof(Vec3), (void*)vertexBuffer); // send data to gpu
 
 	shader->use();
@@ -144,7 +145,7 @@ GLuint Scene::update() {
 	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12); // camera triangles
 
 
-	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size()); // lines
+	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size() * 2); // lines
 
 
 	glDrawArrays(GL_POINTS, (cameraStack.size() * 12) + (lineStack.size() * 2), pointStack.size()); // points
