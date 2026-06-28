@@ -48,6 +48,8 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+	glViewport(0, 0, 500, 500);
+
 	// bind fbo to frame buffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
 
@@ -74,6 +76,8 @@ GLuint Scene::update() {
 	for (size_t i = 0; i < cameraStack.size(); i++) {
 		Camera tmp = cameraStack[i];
 
+		Mat3x3 cameraMat = Mat::createMatrixFromEuler(tmp.rotation);
+
 		Vec3 corners[4];
 		Mat3x3 matrixes[4];
 
@@ -84,18 +88,22 @@ GLuint Scene::update() {
 		2-----3
 		*/
 
-		corners[0] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, -tmp.xyFov.x };
-		corners[1] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, tmp.xyFov.x };
-		corners[2] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, -tmp.xyFov.x };
-		corners[3] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, tmp.xyFov.x };
+		tmp.xyFov = Vec2{ tmp.xyFov.x/2,tmp.xyFov.y/2};
+
+		corners[0] = Vec3{ tmp.xyFov.y, -tmp.xyFov.x,0 };
+		corners[1] = Vec3{ tmp.xyFov.y, tmp.xyFov.x,0 };
+		corners[2] = Vec3{ -tmp.xyFov.y, -tmp.xyFov.x,0 };
+		corners[3] = Vec3{ -tmp.xyFov.y, tmp.xyFov.x,0 };
 
 		matrixes[0] = Mat::createMatrixFromEuler(corners[0]);
 		matrixes[1] = Mat::createMatrixFromEuler(corners[1]);
 		matrixes[2] = Mat::createMatrixFromEuler(corners[2]);
 		matrixes[3] = Mat::createMatrixFromEuler(corners[3]);
 
+		const Vec3 defaultCameraFacing = { 0,0,1 }; // facing z positive, this represents the euler rotation transform of 0
+
 		for (size_t j = 0; j < 4; j++) {
-			corners[j] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[j]) + tmp.position;
+			corners[j] = Mat::multiplyMat3x3(Mat::multiplyMat3x3(defaultCameraFacing, matrixes[j]), cameraMat) + tmp.position;
 		}
 
 		Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
@@ -149,6 +157,7 @@ GLuint Scene::update() {
 	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12); // camera triangles
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size() * 2); // lines
 
 

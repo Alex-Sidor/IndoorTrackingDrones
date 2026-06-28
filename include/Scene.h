@@ -20,8 +20,6 @@ struct Camera {
 	Vec2 xyFov;
 };
 
-const Vec3 defaultCameraFacing = { 0,0,1 }; // facing z positive, this represents the euler rotation transform of 0
-
 class Scene {
 public:
 
