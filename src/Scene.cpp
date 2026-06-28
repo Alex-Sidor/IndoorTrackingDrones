@@ -2,6 +2,10 @@
 
 Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
+	sceneCamera.position = Vec3{ 0,0,0 };
+	sceneCamera.rotation = Vec3{ 0,0,0 };
+
+
 	mxCameras = maxCameras;
 	mxLines = maxLines;
 	mxPoints = maxPoints;
@@ -141,10 +145,10 @@ GLuint Scene::update() {
 
 	glBindVertexArray(VAO);
 
-
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12); // camera triangles
 
-
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size() * 2); // lines
 
 

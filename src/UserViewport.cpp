@@ -145,9 +145,13 @@ void UserViewport::update(CameraSystem* sys) {
     ImVec2 imgScale = ImVec2(float(500), float(500));
 
     Camera c;
-    c.position = Vec3{ 0,0,-3 };
+    c.position = Vec3{ 0,0,3 };
     c.rotation = Vec3{ 0,0,0 };
     c.xyFov = Vec2{ 90,90 };
+
+    wireframeScene->drawCamera(c);
+
+    c.position = Vec3{ 0,0,-3 };
 
     wireframeScene->drawCamera(c);
 

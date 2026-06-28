@@ -6,9 +6,9 @@ uniform mat3 rotation;
 uniform vec3 camPos;
 
 void main() {
-    vec3 newPos = aPos - camPos;
+    //vec3 newPos = aPos - camPos;
     
-    vec3 rotatedPos = rotation * newPos;
+    vec3 rotatedPos = rotation * aPos;
     
-    gl_Position = vec4(rotatedPos.xyz, -rotatedPos.z);
+    gl_Position = vec4(rotatedPos.xyz, rotatedPos.z);
 }
