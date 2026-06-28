@@ -60,8 +60,7 @@ private:
 	std::vector<Line> lineStack;
 	std::vector<Vec3> pointStack;
 
-	Shader* triOutline;
-	Shader* point;
+	Shader* shader;
 
 	GLuint colourBuffer;
 	GLuint fbo;
