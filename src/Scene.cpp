@@ -6,10 +6,9 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	// points take 1 vector
 	// cameras take 3 vectors
 
-
-	lineStack.init(maxLines, 2);
-	pointStack.init(maxPoints, 1);
-	cameraStack.init(maxCameras, 3);
+	mxCameras = maxCameras;
+	mxLines = maxLines;
+	maxPoints = maxPoints;
 
 	sizeOfVectorBuffer = maxLines*2 + maxPoints* 1 + maxCameras*3;
 
@@ -21,8 +20,6 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glGenBuffers(1, &VBO);
 
 	glBindVertexArray(VAO);
-
-
 
 	glBindBuffer(GL_ARRAY_BUFFER,VBO);
 	glBufferData(GL_ARRAY_BUFFER, amountOfBytes, NULL, GL_DYNAMIC_DRAW);
@@ -52,17 +49,6 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	point = new Shader("shaders/project.glsl", "shaders/point.glsl");
 }
 
-Scene::~Scene() {
-	if (triOutline)
-		delete triOutline;
-	
-	if (point) 
-		delete point;
-
-	if (vertexBuffer)
-		delete[] vertexBuffer;
-}
-
 GLuint Scene::update() {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target
 
@@ -70,33 +56,72 @@ GLuint Scene::update() {
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	
+	rotationMat = Mat::createMatrixFromEuler(sceneCamera.rotation);
 
 	size_t index = 0;
 
-	if (cameraStack.getFilledSize() > 0 || lineStack.getFilledSize() > 0) {
+	if (cameraStack.size() > 0 || lineStack.size() > 0) {
 		triOutline->use();
 
-		for (size_t i = 0; i < cameraStack.getFilledSize(); i++) {
-			vertexBuffer[index] = *cameraStack.getObject(i);
+		for (size_t i = 0; i < cameraStack.size(); i++) {
+			Camera tmp = cameraStack[i];
+
+			Vec3 corners[4];
+			Mat3x3 matrixes[4];
+
+
+			/*
+			0-----1
+			|     |
+			2-----3
+			*/
+
+			corners[0] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, -tmp.xyFov.x };
+			corners[1] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, tmp.xyFov.x };
+			corners[2] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, -tmp.xyFov.x };
+			corners[3] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, tmp.xyFov.x };
+
+			matrixes[0] = Mat::createMatrixFromEuler(corners[0]);
+			matrixes[1] = Mat::createMatrixFromEuler(corners[1]);
+			matrixes[2] = Mat::createMatrixFromEuler(corners[2]);
+			matrixes[3] = Mat::createMatrixFromEuler(corners[3]);
+
+			for (size_t i = 0; i < 4; i++){
+				corners[i] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[i]) + tmp.position;
+			}
+			
+			Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
+									corners[1],corners[3],tmp.position ,
+									corners[3],corners[2],tmp.position ,
+									corners[2],corners[0],tmp.position };
+
+
+
+			for (size_t i = 0; i < 12; i++) {
+				vertexBuffer[index + i] = tempBuffer[i];
+			}
+
+			
 			index++;
 		}
 
-
-
-		for (size_t i = 0; i < lineStack.getFilledSize(); i++) {
+		for (size_t i = 0; i < lineStack.size(); i++) {
 			vertexBuffer[index] = *lineStack.getObject(i);
 			index++;
 		}
 	}
 
-	if (pointStack.getFilledSize() > 0) {
+	if (pointStack.size() > 0) {
 		point->use();
 
-		for (size_t i = 0; i < pointStack.getFilledSize(); i++) {
-			vertexBuffer[index] = *pointStack.getObject(i);
+		for (size_t i = 0; i < pointStack.size(); i++) {
+			vertexBuffer[index] = pointStack[i]
 			index++;
 		}
 	}
+
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target
 
@@ -111,15 +136,17 @@ GLuint Scene::update() {
 // these can be called whenever, only drawn when scene is updated
 
 void Scene::drawCamera(Camera c) {
-	cameraStack.addObject((Vec3*)&c);
+	if(cameraStack.size() == )
+	
+	cameraStack.push_back(c);
 }
 
 void Scene::drawLine(Line l) {
-	lineStack.addObject((Vec3*)&l);
+	lineStack.push_back(l);
 }
 
 void Scene::drawPoint(Vec3 p) {
-	pointStack.addObject((Vec3*)&p);
+	pointStack.push_back(p);
 }
 
 //

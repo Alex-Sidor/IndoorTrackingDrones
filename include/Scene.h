@@ -7,6 +7,8 @@
 #include "Vector.h"
 #include "Shader.h"
 
+#include "Mat.h"
+
 struct Line {
 	Vec3 a;
 	Vec3 b;
@@ -14,81 +16,16 @@ struct Line {
 
 struct Camera {
 	Vec3 position;
-	Vec3 forward;
-	Vec3 up;
+	Vec3 rotation;
+	Vec2 xyFov;
 };
 
-class StackBuf {
-public:
-
-	void init(size_t maxObjects, size_t sizeOfObject) {
-
-		max = maxObjects;
-
-		objectSize = sizeOfObject;
-
-		buf = new  Vec3[objectSize * max];
-
-		clear();
-	}
-
-	~StackBuf() {
-
-		if (buf) {
-			delete[] buf;
-		}
-
-	}
-
-	void addObject(Vec3* add) {
-		if (!buf) {
-			std::cout << "buffer in stackbuf failed to initialise";
-			return;
-		}
-		
-		memcpy(buf + current, add, objectSize * sizeof(Vec3));
-
-		current += objectSize;
-	}
-
-	Vec3* getObject(size_t index) {
-		if (!buf) {
-			std::cout << "buffer in stackbuf failed to initialise";
-			return &Vec3{0,0,0,};
-		}
-
-		return buf + (objectSize * index);
-	}
-
-	void clear() {
-		current = 0;
-	}
-
-	size_t getFilledSize() {
-		return current;
-	}
-
-	Vec3* getBufPtr() {
-		return buf;
-	}
-
-private:
-	size_t max;
-	size_t current;
-
-	size_t objectSize;
-
-	Vec3* buf;
-};
-
-
+const Vec3 defaultCameraFacing = { 0,0,1 }; // facing z positive, this represents the euler rotation transform of 0
 
 class Scene {
 public:
 
 	Scene(size_t maxLines, size_t maxPoints, size_t maxCameras);
-
-	~Scene();
 
 	GLuint update();
 
@@ -102,11 +39,26 @@ public:
 
 private:
 
+	// camera
+
+	Camera sceneCamera;
+
+	float fov = 90;
+
+	Mat3x3 rotationMat;
+
+	//
+
+
+	size_t mxCameras;
+	size_t mxLines;
+	size_t mxPoints;
+
 	size_t sizeOfVectorBuffer;
 
-	StackBuf cameraStack;
-	StackBuf lineStack;
-	StackBuf pointStack;
+	std::vector<Camera> cameraStack;
+	std::vector<Line> lineStack;
+	std::vector<Vec3> pointStack;
 
 	Shader* triOutline;
 	Shader* point;
