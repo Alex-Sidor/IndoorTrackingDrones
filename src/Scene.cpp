@@ -48,8 +48,6 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	glViewport(0, 0, 500, 500);
-
 	// bind fbo to frame buffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
 
@@ -139,6 +137,8 @@ GLuint Scene::update() {
 	// render
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target to texture
+
+	glViewport(0, 0, 500, 500);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
