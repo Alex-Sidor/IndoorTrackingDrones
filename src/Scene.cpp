@@ -103,12 +103,17 @@ GLuint Scene::update() {
 			}
 
 			
-			index++;
+			index += 12;
 		}
 
 		for (size_t i = 0; i < lineStack.size(); i++) {
-			vertexBuffer[index] = *lineStack.getObject(i);
-			index++;
+			Line tmp = lineStack[i];
+			
+			vertexBuffer[index + 0] = tmp.a;
+			vertexBuffer[index + 1] = tmp.b;
+			vertexBuffer[index + 2] = tmp.b;
+			
+			index += 3;
 		}
 	}
 
@@ -117,7 +122,7 @@ GLuint Scene::update() {
 
 		for (size_t i = 0; i < pointStack.size(); i++) {
 			vertexBuffer[index] = pointStack[i]
-			index++;
+			index += 6;
 		}
 	}
 
