@@ -61,68 +61,62 @@ GLuint Scene::update() {
 
 	size_t index = 0;
 
-	if (cameraStack.size() > 0 || lineStack.size() > 0) {
-		triOutline->use();
+	shader->use();
 
-		for (size_t i = 0; i < cameraStack.size(); i++) {
-			Camera tmp = cameraStack[i];
+	for (size_t i = 0; i < cameraStack.size(); i++) {
+		Camera tmp = cameraStack[i];
 
-			Vec3 corners[4];
-			Mat3x3 matrixes[4];
-
-
-			/*
-			0-----1
-			|     |
-			2-----3
-			*/
-
-			corners[0] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, -tmp.xyFov.x };
-			corners[1] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, tmp.xyFov.x };
-			corners[2] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, -tmp.xyFov.x };
-			corners[3] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, tmp.xyFov.x };
-
-			matrixes[0] = Mat::createMatrixFromEuler(corners[0]);
-			matrixes[1] = Mat::createMatrixFromEuler(corners[1]);
-			matrixes[2] = Mat::createMatrixFromEuler(corners[2]);
-			matrixes[3] = Mat::createMatrixFromEuler(corners[3]);
-
-			for (size_t i = 0; i < 4; i++){
-				corners[i] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[i]) + tmp.position;
-			}
-			
-			Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
-									corners[1],corners[3],tmp.position ,
-									corners[3],corners[2],tmp.position ,
-									corners[2],corners[0],tmp.position };
+		Vec3 corners[4];
+		Mat3x3 matrixes[4];
 
 
+		/*
+		0-----1
+		|     |
+		2-----3
+		*/
 
-			for (size_t i = 0; i < 12; i++) {
-				vertexBuffer[index + i] = tempBuffer[i];
-			}
+		corners[0] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, -tmp.xyFov.x };
+		corners[1] = tmp.rotation + Vec3{ tmp.xyFov.y, 0, tmp.xyFov.x };
+		corners[2] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, -tmp.xyFov.x };
+		corners[3] = tmp.rotation + Vec3{ -tmp.xyFov.y, 0, tmp.xyFov.x };
 
-			
-			index += 12;
+		matrixes[0] = Mat::createMatrixFromEuler(corners[0]);
+		matrixes[1] = Mat::createMatrixFromEuler(corners[1]);
+		matrixes[2] = Mat::createMatrixFromEuler(corners[2]);
+		matrixes[3] = Mat::createMatrixFromEuler(corners[3]);
+
+		for (size_t i = 0; i < 4; i++) {
+			corners[i] = Mat::multiplyMat3x3(defaultCameraFacing, matrixes[i]) + tmp.position;
 		}
 
-		for (size_t i = 0; i < lineStack.size(); i++) {
-			Line tmp = lineStack[i];
-			
-			vertexBuffer[index + 0] = tmp.a;
-			vertexBuffer[index + 1] = tmp.b;
-			
-			index += 2;
+		Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
+								corners[1],corners[3],tmp.position ,
+								corners[3],corners[2],tmp.position ,
+								corners[2],corners[0],tmp.position };
+
+
+
+		for (size_t i = 0; i < 12; i++) {
+			vertexBuffer[index + i] = tempBuffer[i];
 		}
+
+
+		index += 12;
 	}
 
-	if (pointStack.size() > 0) {
-		point->use();
+	for (size_t i = 0; i < lineStack.size(); i++) {
+		Line tmp = lineStack[i];
 
-		for (size_t i = 0; i < pointStack.size(); i++) {
-			vertexBuffer[index] = pointStack[i];
-			index += 1;
-		}
+		vertexBuffer[index + 0] = tmp.a;
+		vertexBuffer[index + 1] = tmp.b;
+
+		index += 2;
+	}
+
+	for (size_t i = 0; i < pointStack.size(); i++) {
+		vertexBuffer[index] = pointStack[i];
+		index += 1;
 	}
 
 	// render buffer
