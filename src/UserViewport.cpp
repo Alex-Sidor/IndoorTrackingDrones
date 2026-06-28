@@ -88,6 +88,8 @@ void UserViewport::update(CameraSystem* sys) {
 
     cv::Mat* frames = sys->getCameraFrames();
 
+    // do some sort of data proessing and handling here
+
     if (sys->getNumberOfCameras() != numberOfTrackedCams) {
         std::cout << "this error should never happen, something really bad happened\n";
         return;
@@ -98,6 +100,21 @@ void UserViewport::update(CameraSystem* sys) {
             updateOpenGLTexture(camTextures[i], frames[i]);
         }
     }
+
+    GLuint sceneTexture = wireframeScene->update();
+    wireframeScene->clearDraws();
+
+
+
+    Camera c;
+    c.position = Vec3{ 0,0,0 };
+    c.rotation = Vec3{ 0,0,0 };
+    c.xyFov = Vec2{ 90,90 };
+
+    wireframeScene->drawCamera(c);
+
+
+    // ImGui window
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -144,16 +161,7 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImVec2 imgScale = ImVec2(float(500), float(500));
 
-    Camera c;
-    c.position = Vec3{ 0,0,0 };
-    c.rotation = Vec3{ 0,0,0 };
-    c.xyFov = Vec2{ 90,90 };
-
-    wireframeScene->drawCamera(c);
-
-    ImGui::Image((ImTextureID)(intptr_t)wireframeScene->update(), imgScale);
-
-    wireframeScene->clearDraws();
+    ImGui::Image((ImTextureID)(intptr_t)sceneTexture, imgScale);
 
     ImGui::End();
 
