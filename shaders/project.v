@@ -10,5 +10,5 @@ void main() {
     
     vec3 rotatedPos = rotation * newPos;
     
-    vec4(rotatedPos.xyz, -rotatedPos.z);
+    gl_Position = vec4(rotatedPos.xyz, -rotatedPos.z);
 }
