@@ -50,7 +50,7 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 }
 
 GLuint Scene::update() {
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target to texture
 
 	// render everything put in stack
 
@@ -126,14 +126,12 @@ GLuint Scene::update() {
 		}
 	}
 
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target
-
-	// render buffer
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, index);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target back to default
+
+	// render buffer
 
 	return colourBuffer;
 }
