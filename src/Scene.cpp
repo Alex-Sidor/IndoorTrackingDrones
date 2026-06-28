@@ -2,15 +2,15 @@
 
 Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
-	// lines take 2 vectors
-	// points take 1 vector
-	// cameras take 3 vectors
-
 	mxCameras = maxCameras;
 	mxLines = maxLines;
 	maxPoints = maxPoints;
 
-	sizeOfVectorBuffer = maxLines*2 + maxPoints* 1 + maxCameras*3;
+	// 2 vectors for a line, a-b
+	// 1 vector for a point, position
+	// 12 vectors for a camera, 4 triangles 3 points each
+
+	sizeOfVectorBuffer = maxLines*2 + maxPoints* 1 + maxCameras*12;
 
 	vertexBuffer = new Vec3[sizeOfVectorBuffer];
 
@@ -111,9 +111,8 @@ GLuint Scene::update() {
 			
 			vertexBuffer[index + 0] = tmp.a;
 			vertexBuffer[index + 1] = tmp.b;
-			vertexBuffer[index + 2] = tmp.b;
 			
-			index += 3;
+			index += 2;
 		}
 	}
 
@@ -121,17 +120,24 @@ GLuint Scene::update() {
 		point->use();
 
 		for (size_t i = 0; i < pointStack.size(); i++) {
-			vertexBuffer[index] = pointStack[i]
-			index += 6;
+			vertexBuffer[index] = pointStack[i];
+			index += 1;
 		}
 	}
+
+	// render buffer
 
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, index);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target back to default
 
-	// render buffer
+
+
+
+	cameraStack.clear();
+	lineStack.clear();
+	pointStack.clear();
 
 	return colourBuffer;
 }
@@ -139,16 +145,26 @@ GLuint Scene::update() {
 // these can be called whenever, only drawn when scene is updated
 
 void Scene::drawCamera(Camera c) {
-	if(cameraStack.size() == )
+	if (cameraStack.size() == mxCameras) {
+		return;
+	}
 	
 	cameraStack.push_back(c);
 }
 
 void Scene::drawLine(Line l) {
+	if (lineStack.size() == mxLines) {
+		return;
+	}
+	
 	lineStack.push_back(l);
 }
 
 void Scene::drawPoint(Vec3 p) {
+	if (pointStack.size() == mxPoints) {
+		return;
+	}
+	
 	pointStack.push_back(p);
 }
 
