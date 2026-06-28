@@ -27,6 +27,8 @@ public:
 
 	Scene(size_t maxLines, size_t maxPoints, size_t maxCameras);
 
+	~Scene();
+
 	GLuint update();
 
 	void drawCamera(Camera c);

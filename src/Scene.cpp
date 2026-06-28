@@ -44,9 +44,12 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
 
 
-	triOutline = new Shader("shaders/project.glsl", "shaders/triOutline.glsl");
+	shader = new Shader("shaders/project.glsl", "shaders/triOutline.glsl");
+}
 
-	point = new Shader("shaders/project.glsl", "shaders/point.glsl");
+Scene::~Scene() {
+	if (shader)
+		delete shader;
 }
 
 GLuint Scene::update() {
