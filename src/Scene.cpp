@@ -4,7 +4,7 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
 	mxCameras = maxCameras;
 	mxLines = maxLines;
-	maxPoints = maxPoints;
+	mxPoints = maxPoints;
 
 	// 2 vectors for a line, a-b
 	// 1 vector for a point, position
@@ -15,6 +15,8 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	vertexBuffer = new Vec3[sizeOfVectorBuffer];
 
 	size_t amountOfBytes = sizeOfVectorBuffer * sizeof(Vec3); 
+
+	// create VBO and VAO
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -30,6 +32,8 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	// Create render target / texture
+
 	glGenTextures(1, &colourBuffer);
 	glBindTexture(GL_TEXTURE_2D, colourBuffer);
 
@@ -44,12 +48,15 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
 
 
-	shader = new Shader("shaders/project.glsl", "shaders/triOutline.glsl");
+	shader = new Shader("shaders/project.glsl", "shaders/colour.glsl");
 }
 
 Scene::~Scene() {
 	if (shader)
 		delete shader;
+
+	if (vertexBuffer)
+		delete[] vertexBuffer;
 }
 
 GLuint Scene::update() {
@@ -122,19 +129,26 @@ GLuint Scene::update() {
 		index += 1;
 	}
 
+	glBufferSubData(GL_ARRAY_BUFFER, 0, index * sizeof(Vec3), (void*)vertexBuffer); // send data to gpu
+
 	// render buffer
 
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, index);
+
+
+
+	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12);
+
+
+	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size());
+
+
+	glDrawArrays(GL_POINTS, (cameraStack.size() * 12) + (lineStack.size() * 2), pointStack.size());
+
+
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target back to default
-
-
-
-
-	cameraStack.clear();
-	lineStack.clear();
-	pointStack.clear();
 
 	return colourBuffer;
 }
@@ -165,6 +179,11 @@ void Scene::drawPoint(Vec3 p) {
 	pointStack.push_back(p);
 }
 
+void Scene::clearDraws() {
+	cameraStack.clear();
+	lineStack.clear();
+	pointStack.clear();
+}
 //
 
 void Scene::setColour() {

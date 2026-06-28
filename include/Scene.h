@@ -31,6 +31,8 @@ public:
 
 	GLuint update();
 
+	void clearDraws();
+
 	void drawCamera(Camera c);
 
 	void drawLine(Line l);

@@ -144,7 +144,11 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImVec2 imgScale = ImVec2(float(500), float(500));
 
+    wireframeScene->drawPoint(Vec3{0,0,3});
+
     ImGui::Image((ImTextureID)(intptr_t)wireframeScene->update(), imgScale);
+
+    wireframeScene->clearDraws();
 
     ImGui::End();
 
