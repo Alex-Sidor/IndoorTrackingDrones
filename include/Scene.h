@@ -69,6 +69,9 @@ private:
 	GLuint colourBuffer;
 	GLuint fbo;
 
+	GLint rotLocation;
+	GLint camLocation;
+
 	Vec3* vertexBuffer;
 
 	GLuint VAO, VBO;

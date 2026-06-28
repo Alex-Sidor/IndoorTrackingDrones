@@ -48,7 +48,10 @@ Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
 
 
-	shader = new Shader("shaders/project.glsl", "shaders/colour.glsl");
+	shader = new Shader("../shaders/project.v", "../shaders/colour.f");
+
+	GLint rotLocation = glGetUniformLocation(shader->ID, "rotation");
+	GLint camLocation = glGetUniformLocation(shader->ID, "camPos");
 }
 
 Scene::~Scene() {
@@ -60,18 +63,9 @@ Scene::~Scene() {
 }
 
 GLuint Scene::update() {
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target to texture
-
-	// render everything put in stack
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
 	rotationMat = Mat::createMatrixFromEuler(sceneCamera.rotation);
 
 	size_t index = 0;
-
-	shader->use();
 
 	for (size_t i = 0; i < cameraStack.size(); i++) {
 		Camera tmp = cameraStack[i];
@@ -129,24 +123,31 @@ GLuint Scene::update() {
 		index += 1;
 	}
 
+	
+	// render
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo); // set render target to texture
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	glBufferSubData(GL_ARRAY_BUFFER, 0, index * sizeof(Vec3), (void*)vertexBuffer); // send data to gpu
 
-	// render buffer
+	shader->use();
+
+	glUniformMatrix3fv(rotLocation, 1, GL_FALSE, &rotationMat.m[0][0]);
+	glUniform3fv(camLocation, 1, (float*)&sceneCamera.position);
 
 	glBindVertexArray(VAO);
 
 
-
-	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12);
-
-
-	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size());
+	glDrawArrays(GL_TRIANGLES, 0, cameraStack.size() * 12); // camera triangles
 
 
-	glDrawArrays(GL_POINTS, (cameraStack.size() * 12) + (lineStack.size() * 2), pointStack.size());
+	glDrawArrays(GL_LINES, cameraStack.size() * 12, lineStack.size()); // lines
 
 
-
+	glDrawArrays(GL_POINTS, (cameraStack.size() * 12) + (lineStack.size() * 2), pointStack.size()); // points
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // set render target back to default
 
