@@ -101,14 +101,6 @@ void UserViewport::update(CameraSystem* sys) {
         }
     }
 
-    Camera c;
-    c.position = Vec3{ 0,0,2 };
-    c.rotation = Vec3{ 0,0,0 };
-    c.xyFov = Vec2{ 90,90 };
-
-    wireframeScene->drawCamera(c);
-
-
     // ImGui window
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -161,8 +153,6 @@ void UserViewport::update(CameraSystem* sys) {
     if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right))
     {
         wireframeScene->viewportInput(Vec2{io.MouseDelta.x,io.MouseDelta.y}, io.MouseWheel);
-
-        std::cout << io.MouseDelta.x << "\n";
     }
 
     GLuint sceneTexture = wireframeScene->update();
