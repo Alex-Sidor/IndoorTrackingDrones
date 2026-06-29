@@ -39,11 +39,13 @@ public:
 
 	void setColour();
 
-	void viewportInput(Vec2 mouse);
+	void viewportInput(Vec2 mouse, float scroll);
 
 private:
 
 	// camera
+
+	float distance = 10;
 
 	Camera sceneCamera;
 

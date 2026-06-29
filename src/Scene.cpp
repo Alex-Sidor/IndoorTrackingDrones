@@ -67,7 +67,14 @@ Scene::~Scene() {
 }
 
 GLuint Scene::update() {
+	// setup camera position and rotation
+	
 	rotationMat = Mat::createMatrixFromEuler(sceneCamera.rotation);
+
+	Mat3x3 camMat = Mat::createMatrixFromEuler(sceneCamera.rotation * -1);
+	
+	sceneCamera.position = Mat::multiplyMat3x3(Vec3{ 0,0,distance }, camMat);
+
 
 	size_t index = 0;
 
@@ -200,6 +207,12 @@ void Scene::clearDraws() {
 	pointStack.clear();
 }
 //
+
+void Scene::viewportInput(Vec2 mouse, float scroll) {
+	distance += scroll;
+
+	sceneCamera.rotation += Vec3{ mouse.y,mouse.x,0 } /50;
+}
 
 void Scene::setColour() {
 	// for all draw calls after this, draw them in this shader
