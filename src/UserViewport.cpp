@@ -101,11 +101,6 @@ void UserViewport::update(CameraSystem* sys) {
         }
     }
 
-    GLuint sceneTexture = wireframeScene->update();
-    wireframeScene->clearDraws();
-
-
-
     Camera c;
     c.position = Vec3{ 0,0,0 };
     c.rotation = Vec3{ 0,0,0 };
@@ -157,13 +152,27 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImGui::End();
 
+    // wireframe viewport
+
     ImGui::Begin("Viewport");
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        wireframeScene->viewportInput(Vec2{io.MouseDelta.x,io.MouseDelta.y});
+    }
+
+    GLuint sceneTexture = wireframeScene->update();
+    wireframeScene->clearDraws();
 
     ImVec2 imgScale = ImVec2(float(500), float(500));
 
     ImGui::Image((ImTextureID)(intptr_t)sceneTexture, imgScale);
 
     ImGui::End();
+
+    //
 
     ImGui::Render();
     int display_w, display_h;

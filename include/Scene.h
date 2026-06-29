@@ -39,6 +39,8 @@ public:
 
 	void setColour();
 
+	void viewportInput(Vec2 mouse);
+
 private:
 
 	// camera
