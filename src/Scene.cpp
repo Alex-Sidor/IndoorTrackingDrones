@@ -2,7 +2,7 @@
 
 Scene::Scene(size_t maxLines, size_t maxPoints, size_t maxCameras) {
 
-	sceneCamera.position = Vec3{ 0,0,0 };
+	sceneCamera.position = Vec3{ 0,0,5 };
 	sceneCamera.rotation = Vec3{ 0,0,0 };
 
 
@@ -70,10 +70,8 @@ GLuint Scene::update() {
 	// setup camera position and rotation
 	
 	rotationMat = Mat::createMatrixFromEuler(sceneCamera.rotation);
-
-	Mat3x3 camMat = Mat::createMatrixFromEuler(sceneCamera.rotation * -1);
 	
-	sceneCamera.position = Mat::multiplyMat3x3(Vec3{ 0,0,distance }, camMat);
+	sceneCamera.position = Mat::multiplyMat3x3(Vec3{ 0,0,distance }, rotationMat);
 
 
 	size_t index = 0;
@@ -211,7 +209,7 @@ void Scene::clearDraws() {
 void Scene::viewportInput(Vec2 mouse, float scroll) {
 	distance += scroll;
 
-	sceneCamera.rotation += Vec3{ mouse.y,mouse.x,0 } / -200; // ill make this sensitivity an option later
+	sceneCamera.rotation += Vec3{mouse.y,mouse.x,0 } / 200; // ill make this sensitivity an option later
 }
 
 void Scene::setColour() {
