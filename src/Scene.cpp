@@ -211,7 +211,7 @@ void Scene::clearDraws() {
 void Scene::viewportInput(Vec2 mouse, float scroll) {
 	distance += scroll;
 
-	sceneCamera.rotation += Vec3{ mouse.y,mouse.x,0 } / 200;
+	sceneCamera.rotation += Vec3{ mouse.y,mouse.x,0 } / -200; // ill make this sensitivity an option later
 }
 
 void Scene::setColour() {
