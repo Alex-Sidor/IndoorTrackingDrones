@@ -210,6 +210,14 @@ void Scene::viewportInput(Vec2 mouse, float scroll) {
 	distance *= scroll* 0.1 + 1;
 
 	sceneCamera.rotation += Vec3{mouse.y,mouse.x,0 } / 200; // ill make this sensitivity an option later
+
+	float deg90 = 1.57079633;
+
+	if (sceneCamera.rotation.x > deg90)
+		sceneCamera.rotation.x = deg90;
+
+	if (sceneCamera.rotation.x < -deg90)
+		sceneCamera.rotation.x = -deg90;
 }
 
 void Scene::setColour() {
