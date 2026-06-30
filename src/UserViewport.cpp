@@ -84,6 +84,7 @@ void UserViewport::update(CameraSystem* sys) {
         return;
     }
 
+
     updateTrackedCameras(sys);
 
     cv::Mat* frames = sys->getCameraFrames();
@@ -100,6 +101,22 @@ void UserViewport::update(CameraSystem* sys) {
             updateOpenGLTexture(camTextures[i], frames[i]);
         }
     }
+
+    // draw calls for viewport
+
+    // draw grid base
+
+    Vec3 a = Vec3{ -1,-1,-1 };
+    Vec3 b = Vec3{ 1,-1,-1 };
+    Vec3 c = Vec3{ -1,-1,1 };
+    Vec3 d = Vec3{ 1,-1,1 };
+
+    wireframeScene->drawLine(Line{ a, b});
+    wireframeScene->drawLine(Line{ b, d });
+    wireframeScene->drawLine(Line{ d, c });
+    wireframeScene->drawLine(Line{ c, a });
+
+    //
 
     // ImGui window
 
