@@ -177,7 +177,8 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImVec2 imgScale = ImVec2(float(500), float(500));
 
-    ImGui::Image((ImTextureID)(intptr_t)sceneTexture, imgScale);
+    ImGui::Image((ImTextureID)(intptr_t)sceneTexture, imgScale, ImVec2(0, 1),ImVec2(1, 0));
+    
 
     ImGui::End();
 
