@@ -26,10 +26,9 @@ int main() {
     Mocap cap(2);
 
     sys = new CameraSystem();
+    sys->connectDevices();
 
     filter = new TrackerDetection();
-
-    sys->connectDevices();
 
     viewport = new UserViewport;
 
