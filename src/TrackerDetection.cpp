@@ -3,45 +3,47 @@
 #include <algorithm>
 #include <iostream>
 
-glm::vec2 TrackerDetection::findTracker(cv::Mat* frame) {
+void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
+
     if (!frame) {
-        return glm::vec2(NAN);
         std::cout << "TrackerDetection::findTracker - passed a nullptr, no frame\n";
-    }
-    
-    cv::Mat gray;
-    cv::cvtColor(*frame, gray, cv::COLOR_BGR2GRAY);
-
-    double maxVal;
-    cv::Point maxLoc;
-    cv::minMaxLoc(gray, nullptr, &maxVal, nullptr, &maxLoc);
-
-    glm::vec2 p = glm::vec2(maxLoc.x, maxLoc.y);
-
-    if (maxVal > 240) {
-        return p;
-    }
-    else {
-        return glm::vec2(NAN);
-    }
-}
-
-void TrackerDetection::placeTrackerMarker(cv::Mat* frame, glm::vec2 p) {
-    if (!frame) {
-        std::cout << "TrackerDetection::placeTrackerMarker - passed a nullptr, no frame\n";
         return;
     }
 
-    int boxSize = 21;
-    int halfSize = boxSize / 2;
+    for (size_t i = 0; i < numberOfCams; i++) {
 
-    cv::Point topLeft(p.x - halfSize, p.y - halfSize);
-    cv::Point bottomRight(p.x + halfSize, p.y + halfSize);
+        cv::Mat gray; // convert into 1 color space so you can find bright spots (will make this weighted towards certain colours since trackers are not always white)
+        cv::cvtColor(frame[i], gray, cv::COLOR_BGR2GRAY);
 
-    topLeft.x = std::max(0, topLeft.x);
-    topLeft.y = std::max(0, topLeft.y);
-    bottomRight.x = std::min((*frame).cols - 1, bottomRight.x);
-    bottomRight.y = std::min((*frame).rows - 1, bottomRight.y);
+        cv::Mat thresh;
 
-    cv::rectangle(*frame, topLeft, bottomRight, cv::Scalar(0, 0, 255), -1);
+        cv::threshold(gray, thresh, 240, 255, cv::THRESH_BINARY); // make this be adaptive 
+
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+
+        cv::findContours(thresh, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        for (size_t j = 0; j < contours.size(); j++) {
+            double area = cv::contourArea(contours[j]);
+            if (area > 10) { // expose to settings
+
+                cv::Rect rect = cv::boundingRect(contours[j]);
+
+                cv::Point center(rect.x + rect.width / 2, rect.y + rect.height / 2);
+
+                cv::circle(frame[i], center, 10, cv::Scalar(0, 0, 255), -1);
+
+                RawPoint point;
+                point.originCamera = i;
+                point.xyAngleDirection = Vec2{center.x, center .y};
+
+                accumulatedPoints.push_back(point);
+            }
+        }
+    }
+}
+
+void TrackerDetection::clearTrackerAccumulation() {
+    accumulatedPoints.clear();
 }

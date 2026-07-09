@@ -1,11 +1,27 @@
 #pragma once
 
+#include "Vector.h"
+#include <vector>
 #include "glm/glm.hpp"
-
 #include <opencv2/opencv.hpp>
 
-namespace TrackerDetection {
-	glm::vec2 findTracker(cv::Mat* frame);
+struct RawPoint {
+	size_t originCamera;
+	Vec2 xyAngleDirection; 
+};
 
-	void placeTrackerMarker(cv::Mat* frame, glm::vec2 p);
-}
+class TrackerDetection {
+public:
+
+	void clearTrackerAccumulation();
+
+	void findTrackers(cv::Mat* frame, size_t numberOfCams);
+
+private:
+
+	std::vector<RawPoint> accumulatedPoints;
+};
+
+	
+
+	
