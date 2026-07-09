@@ -46,10 +46,7 @@ UserViewport::~UserViewport() {
     }
 }
 
-void UserViewport::updateTrackedCameras(CameraSystem* sys) {
-    
-    int numberOfNewCams = sys->getNumberOfCameras();
-
+void UserViewport::updateTrackedCameras(size_t numberOfNewCams) {
     if (numberOfTrackedCams == numberOfNewCams) {
         return;
     }
@@ -84,14 +81,14 @@ void UserViewport::update(CameraSystem* sys) {
         return;
     }
 
-
-    updateTrackedCameras(sys);
-
     cv::Mat* frames = sys->getCameraFrames();
+    size_t numberOfCameras = sys->getNumberOfCameras();
+
+    updateTrackedCameras(numberOfCameras);
 
     // do some sort of data proessing and handling here
 
-    if (sys->getNumberOfCameras() != numberOfTrackedCams) {
+    if (numberOfCameras != numberOfTrackedCams) {
         std::cout << "this error should never happen, something really bad happened\n";
         return;
     }

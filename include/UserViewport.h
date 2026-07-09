@@ -25,7 +25,7 @@ public:
 
 private:
 
-	void updateTrackedCameras(CameraSystem* sys);
+	void updateTrackedCameras(size_t numberOfNewCams);
 
 	void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame);
 
