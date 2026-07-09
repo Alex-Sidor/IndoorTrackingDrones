@@ -86,8 +86,6 @@ void UserViewport::update(CameraSystem* sys) {
 
     updateTrackedCameras(numberOfCameras);
 
-    // do some sort of data proessing and handling here
-
     if (numberOfCameras != numberOfTrackedCams) {
         std::cout << "this error should never happen, something really bad happened\n";
         return;
