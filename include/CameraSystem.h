@@ -27,6 +27,8 @@ public:
 
 	cv::Mat* getCameraFrames();
 
+	size_t getNumberOfCams();
+
 	void connectDevices();
 
 private:

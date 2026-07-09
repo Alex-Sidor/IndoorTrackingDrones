@@ -112,3 +112,7 @@ int CameraSystem::getNumberOfCameras() {
 cv::Mat* CameraSystem::getCameraFrames() {
 	return cameraFrames;
 }
+
+size_t CameraSystem::getNumberOfCams() {
+	return numberOfCams;
+}
