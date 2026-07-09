@@ -18,6 +18,7 @@
 
 UserViewport* viewport;
 CameraSystem* sys;
+TrackerDetection* filter;
 
 
 int main() {
@@ -25,12 +26,18 @@ int main() {
     Mocap cap(2);
 
     sys = new CameraSystem();
+
+    filter = new TrackerDetection();
+
     sys->connectDevices();
 
     viewport = new UserViewport;
 
     if (!viewport->init()) {
         while (!viewport->shouldClose()) {
+            
+            
+            
             viewport->update(sys);
 
             if (sys->getNumberOfCameras() < 2) {
@@ -39,13 +46,14 @@ int main() {
         }
     }
 
-    if (viewport) {
+    if (viewport)
         delete viewport;
-    }
 
-    if (sys) {
+    if (sys)
         delete sys;
-    }
+
+    if (filter)
+        delete filter;
 
     return 0;
 }
