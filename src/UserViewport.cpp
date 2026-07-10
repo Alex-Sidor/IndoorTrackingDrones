@@ -172,7 +172,12 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
 
     // wireframe viewport
 
-    ImGui::Begin("Viewport");
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(10.0f, 10.0f),
+        ImVec2(500.0f, 500.0f)
+    );
+
+    ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -184,7 +189,10 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
     GLuint sceneTexture = wireframeScene->update();
     wireframeScene->clearDraws();
 
-    ImVec2 imgScale = ImVec2(float(500), float(500));
+    ImVec2 windowSize = ImGui::GetContentRegionMax();
+    float min = std::min(windowSize.x, windowSize.y); // -10 for padding
+
+    ImVec2 imgScale = ImVec2(min, min);
 
     ImGui::Image((ImTextureID)(intptr_t)sceneTexture, imgScale, ImVec2(0, 1),ImVec2(1, 0));
     
