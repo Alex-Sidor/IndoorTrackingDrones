@@ -91,12 +91,14 @@ GLuint Scene::update() {
 		2-----3
 		*/
 
-		tmp.xyFov = Vec2{ tmp.xyFov.x/2,tmp.xyFov.y/2};
+		const float DegreeToRad = 0.017453292519943;
 
-		corners[0] = Vec3{ tmp.xyFov.y, -tmp.xyFov.x,0 };
-		corners[1] = Vec3{ tmp.xyFov.y, tmp.xyFov.x,0 };
-		corners[2] = Vec3{ -tmp.xyFov.y, -tmp.xyFov.x,0 };
-		corners[3] = Vec3{ -tmp.xyFov.y, tmp.xyFov.x,0 };
+		tmp.xyFov = Vec2{ tanf(DegreeToRad * tmp.xyFov.x/2),tanf(DegreeToRad *tmp.xyFov.y/2)};
+
+		corners[0] = Vec3{ tmp.xyFov.y, -tmp.xyFov.x,1 };
+		corners[1] = Vec3{ tmp.xyFov.y, tmp.xyFov.x,1 };
+		corners[2] = Vec3{ -tmp.xyFov.y, -tmp.xyFov.x,1 };
+		corners[3] = Vec3{ -tmp.xyFov.y, tmp.xyFov.x,1 };
 
 		matrixes[0] = Mat::createMatrixFromEuler(corners[0]);
 		matrixes[1] = Mat::createMatrixFromEuler(corners[1]);
@@ -106,7 +108,7 @@ GLuint Scene::update() {
 		const Vec3 defaultCameraFacing = { 0,0,1 }; // facing z positive, this represents the euler rotation transform of 0
 
 		for (size_t j = 0; j < 4; j++) {
-			corners[j] = Mat::multiplyMat3x3(Mat::multiplyMat3x3(defaultCameraFacing, matrixes[j]), cameraMat) + tmp.position;
+			corners[j] = Mat::multiplyMat3x3(corners[j], cameraMat) + tmp.position;
 		}
 
 		Vec3 tempBuffer[12] = { corners[0],corners[1],tmp.position ,
