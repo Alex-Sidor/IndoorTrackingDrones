@@ -35,7 +35,6 @@ int main() {
     if (!viewport->init()) {
         while (!viewport->shouldClose()) {
             
-            filter->clearTrackerAccumulation();
             filter->findTrackers(sys->getCameraFrames(), sys->getNumberOfCameras());
             
             viewport->update(sys);
