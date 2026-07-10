@@ -40,7 +40,7 @@ int main() {
             
             filter->findTrackers(sys->getCameraFrames(), sys->getNumberOfCameras());
             
-            viewport->update(sys);
+            viewport->update(sys, filter);
 
             if (sys->getNumberOfCameras() < 2) {
                 //std::cout << "Not enough cameras\n";
