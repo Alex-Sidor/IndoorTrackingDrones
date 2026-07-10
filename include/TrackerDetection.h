@@ -10,6 +10,12 @@ struct RawPoint {
 	Vec2 xyAngleDirection; 
 };
 
+enum MODE {
+	Detecting = 0,
+	Sampling = 1,
+	Pause = 2
+};
+
 class TrackerDetection {
 public:
 
@@ -17,7 +23,17 @@ public:
 
 	void findTrackers(cv::Mat* frame, size_t numberOfCams);
 
+	void startSampling(size_t numSamplesToCapture);
+
+	void stopSampling();
+
+	void startDetecting();
+
 private:
+
+	MODE mode = MODE::Pause;
+
+	size_t numOfSamples = 0;
 
 	std::vector<RawPoint> accumulatedPoints;
 };

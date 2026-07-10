@@ -5,6 +5,19 @@
 
 void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
 
+    if(mode == MODE::Pause){
+        return;
+    }
+
+    if (mode == MODE::Detecting) {
+        clearTrackerAccumulation();
+    }
+    else {
+        if (accumulatedPoints.size() > numOfSamples) {
+            mode = MODE::Pause;
+        }
+    }
+
     if (!frame) {
         std::cout << "TrackerDetection::findTracker - passed a nullptr, no frame\n";
         return;
@@ -46,4 +59,17 @@ void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
 
 void TrackerDetection::clearTrackerAccumulation() {
     accumulatedPoints.clear();
+}
+
+void TrackerDetection::startSampling(size_t numSamplesToCapture) {
+    mode = MODE::Sampling;
+    numOfSamples = numSamplesToCapture;
+}
+
+void TrackerDetection::stopSampling() {
+    mode = MODE::Pause;
+}
+
+void TrackerDetection::startDetecting() {
+    mode = MODE::Detecting;
 }
