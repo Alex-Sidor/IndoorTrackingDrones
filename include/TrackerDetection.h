@@ -29,6 +29,11 @@ public:
 
 	void startDetecting();
 
+	// detection params
+
+	int detectionArea = 300;
+	int detectionBrightness = 250;
+
 private:
 
 	MODE mode = MODE::Pause;

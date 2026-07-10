@@ -30,7 +30,7 @@ void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
 
         cv::Mat thresh;
 
-        cv::threshold(gray, thresh, 240, 255, cv::THRESH_BINARY); // make this be adaptive 
+        cv::threshold(gray, thresh, detectionBrightness, 255, cv::THRESH_BINARY);
 
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
@@ -39,7 +39,7 @@ void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
 
         for (size_t j = 0; j < contours.size(); j++) {
             double area = cv::contourArea(contours[j]);
-            if (area > 10) { // expose to settings
+            if (area > detectionArea) { // expose to settings
 
                 cv::Rect rect = cv::boundingRect(contours[j]);
 
