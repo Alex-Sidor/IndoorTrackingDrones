@@ -25,7 +25,7 @@ public:
 
 	void startSampling(size_t numSamplesToCapture);
 
-	void stopSampling();
+	void stop();
 
 	void startDetecting();
 

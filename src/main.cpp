@@ -33,6 +33,9 @@ int main() {
     viewport = new UserViewport;
 
     if (!viewport->init()) {
+
+        filter->startDetecting();
+
         while (!viewport->shouldClose()) {
             
             filter->findTrackers(sys->getCameraFrames(), sys->getNumberOfCameras());
@@ -43,6 +46,8 @@ int main() {
                 //std::cout << "Not enough cameras\n";
             }
         }
+
+        filter->stop();
     }
 
     if (viewport)

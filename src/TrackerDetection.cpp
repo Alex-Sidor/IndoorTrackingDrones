@@ -66,7 +66,7 @@ void TrackerDetection::startSampling(size_t numSamplesToCapture) {
     numOfSamples = numSamplesToCapture;
 }
 
-void TrackerDetection::stopSampling() {
+void TrackerDetection::stop() {
     mode = MODE::Pause;
 }
 
