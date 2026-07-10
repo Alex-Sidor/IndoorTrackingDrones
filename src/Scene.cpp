@@ -73,7 +73,6 @@ GLuint Scene::update() {
 	
 	sceneCamera.position = Mat::multiplyMat3x3(Vec3{ 0,0,distance }, rotationMat);
 
-
 	size_t index = 0;
 
 	for (size_t i = 0; i < cameraStack.size(); i++) {
@@ -83,7 +82,6 @@ GLuint Scene::update() {
 
 		Vec3 corners[4];
 		Mat3x3 matrixes[4];
-
 
 		/*
 		0-----1
@@ -116,12 +114,9 @@ GLuint Scene::update() {
 								corners[3],corners[2],tmp.position ,
 								corners[2],corners[0],tmp.position };
 
-
-
 		for (size_t j = 0; j < 12; j++) {
 			vertexBuffer[index + j] = tempBuffer[j];
 		}
-
 
 		index += 12;
 	}
