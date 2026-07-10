@@ -10,6 +10,7 @@
 #include "Window.h"
 #include "CameraSystem.h"
 #include "Scene.h"
+#include "TrackerDetection.h"
 
 class UserViewport {
 public:
@@ -19,7 +20,7 @@ public:
 
 	bool shouldClose();
 
-	void update(CameraSystem* sys);
+	void update(CameraSystem* sys, TrackerDetection* filter);
 
 	Scene* getScene();
 

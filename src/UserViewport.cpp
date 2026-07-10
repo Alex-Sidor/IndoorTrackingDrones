@@ -73,7 +73,7 @@ void UserViewport::updateTrackedCameras(size_t numberOfNewCams) {
     }
 }
 
-void UserViewport::update(CameraSystem* sys) {
+void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
     glfwPollEvents();
 
     if (!sys) {
@@ -121,14 +121,21 @@ void UserViewport::update(CameraSystem* sys) {
 
     ImGui::Begin("Cameras");
 
-    if (ImGui::Button("Calibrate Cameras")) {
-        std::cout << "need to add calibrationz\n";
-    }
+    if (ImGui::CollapsingHeader("Camera settings")) {
 
-    ImGui::SameLine();
+        if (ImGui::Button("Calibrate Cameras")) {
+            std::cout << "need to add calibration\n";
+        }
 
-    if (ImGui::Button("Refresh")) {
-        sys->connectDevices(); // checks for any new cameras
+        ImGui::SameLine();
+
+        if (ImGui::Button("Refresh")) {
+            sys->connectDevices(); // checks for any new cameras
+        }
+
+        ImGui::SliderInt("Brightness Cutoff", &filter->detectionBrightness, 0, 255);
+        ImGui::InputInt("Size Cutoff", &filter->detectionArea);
+
     }
 
     ImGui::Separator();
