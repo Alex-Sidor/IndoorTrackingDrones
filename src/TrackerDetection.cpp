@@ -49,7 +49,7 @@ void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
 
                 RawPoint point;
                 point.originCamera = i;
-                point.xyAngleDirection = Vec2{center.x, center .y};
+                point.xyAngleDirection = Vec2{(float)center.x, (float)center.y};
 
                 accumulatedPoints.push_back(point);
             }
