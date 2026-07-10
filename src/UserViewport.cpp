@@ -135,7 +135,7 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
 
         ImGui::SliderInt("Brightness Cutoff", &filter->detectionBrightness, 0, 255);
         ImGui::InputInt("Size Cutoff", &filter->detectionArea);
-
+        ImGui::SliderInt("Camera Display Area", &cameraDisplaySize,0,WIDTH);
     }
 
     ImGui::Separator();
@@ -144,18 +144,25 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
 
     if (camTextures) {
 
-        ImVec2 scale = ImVec2(float(WIDTH), float(HEIGHT));
+        float heightWidthRatio = (float)HEIGHT / (float)WIDTH;
 
-        for (int i = 0; i < numberOfTrackedCams; i++) {
-            ImGui::BeginGroup();
-            
-            ImGui::Text("%d", i);
-            ImGui::Image((ImTextureID)(intptr_t)camTextures[i], scale);
+        ImVec2 scale = ImVec2(float(cameraDisplaySize), float(cameraDisplaySize) * heightWidthRatio);
+        ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-            ImGui::EndGroup();
+        int amountHorizontally = floor(availableSpace.x / scale.x);
 
-            if (i < numberOfTrackedCams - 1) {
-                ImGui::SameLine();
+        if (amountHorizontally != 0) {
+            for (int i = 0; i < numberOfTrackedCams; i++) {
+                ImGui::BeginGroup();
+
+                ImGui::Text("%d", i);
+                ImGui::Image((ImTextureID)(intptr_t)camTextures[i], scale);
+
+                ImGui::EndGroup();
+
+                if (i % amountHorizontally < amountHorizontally - 1) {
+                    ImGui::SameLine();
+                }
             }
         }
     }
