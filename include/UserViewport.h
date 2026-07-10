@@ -26,6 +26,8 @@ public:
 
 private:
 
+	int cameraDisplaySize = 480;
+
 	void updateTrackedCameras(size_t numberOfNewCams);
 
 	void updateOpenGLTexture(GLuint textureId, const cv::Mat& frame);
