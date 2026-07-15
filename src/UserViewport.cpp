@@ -73,7 +73,7 @@ void UserViewport::updateTrackedCameras(size_t numberOfNewCams) {
     }
 }
 
-void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
+void UserViewport::update(CameraSystem* sys, Mocap* cap) {
     glfwPollEvents();
 
     if (!sys) {
@@ -82,7 +82,7 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
     }
 
     cv::Mat* frames = sys->getCameraFrames();
-    size_t numberOfCameras = sys->getNumberOfCameras();
+    size_t numberOfCameras = sys->getNumberOfCams();
 
     updateTrackedCameras(numberOfCameras);
 
@@ -133,8 +133,8 @@ void UserViewport::update(CameraSystem* sys, TrackerDetection* filter) {
             sys->connectDevices(); // checks for any new cameras
         }
 
-        ImGui::SliderInt("Brightness Cutoff", &filter->detectionBrightness, 0, 255);
-        ImGui::InputInt("Size Cutoff", &filter->detectionArea);
+        ImGui::SliderInt("Brightness Cutoff", &cap->detectionBrightness, 0, 255);
+        ImGui::InputInt("Size Cutoff", &cap->detectionArea);
         ImGui::SliderInt("Camera Display Area", &cameraDisplaySize,0,WIDTH);
     }
 
