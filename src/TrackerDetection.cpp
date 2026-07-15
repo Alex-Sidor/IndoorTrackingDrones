@@ -3,21 +3,10 @@
 #include <algorithm>
 #include <iostream>
 
-void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
-
-    if(mode == MODE::Pause){
-        return;
-    }
-
-    if (mode == MODE::Detecting) {
-        clearTrackerAccumulation();
-    }
-    else {
-        if (accumulatedPoints.size() > numOfSamples) {
-            mode = MODE::Pause;
-        }
-    }
-
+std::vector<TrackerDetection::RawPoint> TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams, int detectionArea, int detectionBrightness) {
+    
+    std::vector<TrackerDetection::RawPoint> accumulatedPoints;
+    
     if (!frame) {
         std::cout << "TrackerDetection::findTracker - passed a nullptr, no frame\n";
         return;
@@ -55,21 +44,6 @@ void TrackerDetection::findTrackers(cv::Mat* frame, size_t numberOfCams) {
             }
         }
     }
-}
 
-void TrackerDetection::clearTrackerAccumulation() {
-    accumulatedPoints.clear();
-}
-
-void TrackerDetection::startSampling(size_t numSamplesToCapture) {
-    mode = MODE::Sampling;
-    numOfSamples = numSamplesToCapture;
-}
-
-void TrackerDetection::stop() {
-    mode = MODE::Pause;
-}
-
-void TrackerDetection::startDetecting() {
-    mode = MODE::Detecting;
+    return accumulatedPoints;
 }
