@@ -23,8 +23,6 @@ public:
 
 	~CameraSystem();
 
-	int getNumberOfCameras();
-
 	cv::Mat* getCameraFrames();
 
 	size_t getNumberOfCams();

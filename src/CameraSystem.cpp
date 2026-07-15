@@ -105,10 +105,6 @@ CameraSystem::~CameraSystem() {
 	}
 }
 
-int CameraSystem::getNumberOfCameras() {
-	return numberOfCams;
-}
-
 cv::Mat* CameraSystem::getCameraFrames() {
 	return cameraFrames;
 }
