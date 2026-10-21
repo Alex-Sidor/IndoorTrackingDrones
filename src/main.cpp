@@ -16,38 +16,35 @@
 
 #include "UserViewport.h"
 
-UserViewport* viewport;
-CameraSystem* sys;
-TrackerDetection* filter;
-
+UserViewport* viewport; // for display and interaction
+CameraSystem* sys; // for reading camera input
+Mocap* mocapMngr; // for doing math and getting output
 
 int main() {
-
-    Mocap cap(2);
 
     sys = new CameraSystem();
     sys->connectDevices();
 
-    filter = new TrackerDetection();
+    mocapMngr = new Mocap;
 
     viewport = new UserViewport;
 
     if (!viewport->init()) {
 
-        filter->startDetecting();
+        mocapMngr->startDetecting();
 
         while (!viewport->shouldClose()) {
             
-            filter->findTrackers(sys->getCameraFrames(), sys->getNumberOfCameras());
+            mocapMngr->update()
             
-            viewport->update(sys, filter);
+            viewport->update(sys, mocapMngr);
 
             if (sys->getNumberOfCameras() < 2) {
                 //std::cout << "Not enough cameras\n";
             }
         }
 
-        filter->stop();
+        mocapMngr->stop();
     }
 
     if (viewport)

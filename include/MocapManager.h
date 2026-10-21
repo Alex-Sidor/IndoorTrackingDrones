@@ -2,24 +2,50 @@
 
 #include <iostream>
 #include <vector>
-
+#include <opencv2/opencv.hpp>
 #include "glm/glm.hpp"
+#include "CameraSystem.h"
+
+#include "Vector.h"
+
+#include "TrackerDetection.h"
+
+enum MODE {
+	Detecting = 0,
+	Sampling = 1,
+	Paused = 2
+};
 
 class Mocap {
 public:
-	Mocap::Mocap(int numberOfcameras);
-
+	void update(CameraSystem* sys);
+	
 	void startPointRecording(int n);
 
 	void recordPoint(std::vector<glm::vec2> data);
 
-	bool isRecordingPoints();
+	void getFloorSample()
+
+
+
+	// settings for detection of trackers
+
+	int detectionArea = 100;
+	int detectionBrightness = 250;
 
 private:
+	
+	// transformation from raw to world space
 
-	std::vector<glm::vec2> points;
+	Vec3 baseOffset;
+	Vec3 baseNormalDirection;
+	
+	Vec3 distanceSamples[2];
+	float rawDistance;
+
+
+	MODE mode = MODE::Paused;
 
 	int cameras = 0;
-
 	int pointsToRecord = 0;
 };

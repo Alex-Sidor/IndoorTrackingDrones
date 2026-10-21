@@ -7,8 +7,13 @@ bool Mocap::isRecordingPoints() {
 	return true;
 }
 
-Mocap::Mocap(int numberOfCameras) {
-	cameras = numberOfCameras;
+void Mocap::update(CameraSystem* sys){
+	cv::Mat* frames = sys->getCameraFrames();
+	size_t numberOfCams = sys->getNumberOfCams();
+
+	std::vector<TrackerDetection::RawPoint> trackers = TrackerDetection::findTrackers(frames, numberOfCams, detectionArea, detectionBrightness);
+
+
 }
 
 void Mocap::recordPoint(std::vector<glm::vec2> data) {
